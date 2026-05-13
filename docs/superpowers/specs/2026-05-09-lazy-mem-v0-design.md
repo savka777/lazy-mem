@@ -14,6 +14,23 @@ The core system is:
 
 V0 is not a UI, database, Obsidian plugin, SaaS backend, or generic graph visualization tool.
 
+## V0 Thesis
+
+V0 is not primarily about making users initialize memory from scratch. The central Lazy Mem folder is already the installed memory system.
+
+The hard problem is simpler and more important:
+
+> Any agent harness should be able to discover Lazy Mem, read the system instructions, and use the central markdown memory without special integration.
+
+That means V0 should optimize for a universal harness contract:
+
+```text
+If a project has a .lazy-mem pointer file, read it first.
+Then read the central Lazy Mem SYSTEM.md it points to.
+Follow SYSTEM.md before deciding what memory to load.
+Do not preload the whole memory repo.
+```
+
 ## Product Shape
 
 The central repo lives at:
@@ -37,6 +54,73 @@ system_file: SYSTEM.md
 ```
 
 When an agent starts work inside a project, it can read `.lazy-mem`, load the central `SYSTEM.md`, then route into only the relevant Lazy Mem files.
+
+## Setup And Attachment Flow
+
+The nicest V0 install path should feel like:
+
+1. User downloads, clones, or saves the Lazy Mem folder somewhere stable.
+2. Lazy Mem already contains the central scaffold and `SYSTEM.md`.
+3. User runs one attach command inside any project.
+4. The attach command writes a `.lazy-mem` pointer file.
+5. Any harness can now use Lazy Mem by following the pointer.
+
+The attach command should be:
+
+```bash
+/path/to/lazy-mem/bin/lazy-mem attach .
+```
+
+It should create this file in the current project:
+
+```text
+.lazy-mem
+```
+
+With content like:
+
+```yaml
+memory_repo: /Users/sav/Desktop/Projects/lazy-mem
+project_id: example-project
+system_file: SYSTEM.md
+```
+
+The attach command may also offer to create a central project memory page at:
+
+```text
+projects/example-project.md
+```
+
+But creating that page is secondary. The essential V0 behavior is the pointer plus the harness instructions.
+
+## Harness Contract
+
+Lazy Mem should work with Codex, Claude, Pi, Cursor, or any other agent that can read files.
+
+The universal instruction for a harness is:
+
+```text
+Before working in a project, check whether `.lazy-mem` exists in the project root.
+If it exists, read it as YAML.
+Then read `${memory_repo}/${system_file}`.
+Follow those Lazy Mem system instructions before answering or editing files.
+```
+
+The harness does not need a plugin, API key, server, database, or native Lazy Mem integration.
+
+For V0, the user-facing invocation can be as simple as:
+
+```text
+Use Lazy Mem.
+```
+
+The agent should interpret that as:
+
+1. Find `.lazy-mem`.
+2. Load central `SYSTEM.md`.
+3. Read only the routed memory needed for the task.
+4. Explain the Lazy Mem read path if useful.
+5. Write traces and proposals according to `SYSTEM.md`.
 
 ## Repository Scaffold
 
@@ -84,6 +168,13 @@ benchmarks/
 
 .lazy-mem/
   README.md
+
+bin/
+  lazy-mem
+
+templates/
+  project-pointer.yaml
+  project.md
 ```
 
 The visible folders should feel like a normal markdown memory workspace. Graph machinery stays implicit or inside `.lazy-mem/`.
@@ -107,6 +198,12 @@ The visible folders should feel like a normal markdown memory workspace. Graph m
 `proposals/pending/` stores proposed memory updates as reviewable markdown patches.
 
 `logs/read-traces/` and `logs/write-traces/` store agent-readable traces for future recall and token-spend experiments.
+
+`bin/lazy-mem` is the small V0 helper command. It only needs to support `attach` at first.
+
+`templates/project-pointer.yaml` is the template used to create `.lazy-mem` pointer files inside projects.
+
+`templates/project.md` is the template for optional central project memory pages.
 
 ## Markdown And Graph Model
 
@@ -225,6 +322,8 @@ If a project has no `.lazy-mem` pointer, the agent should proceed normally and o
 
 If the pointer file exists but the central repo is missing, the agent should report the missing path and continue without Lazy Mem.
 
+If the pointer file is malformed, the agent should report the invalid field and continue without Lazy Mem.
+
 If the project page does not exist, the agent should use `ROUTERS.md`, relevant procedures, and `state/active-projects.md`, then propose creating a new project page.
 
 If two memory files conflict, the agent should prefer higher `authority`, then newer `freshness`, and should surface the contradiction instead of silently merging it.
@@ -237,6 +336,10 @@ The first experiment should prove:
 
 > An agent can enter a project, find the central Lazy Mem repo through a pointer, read the minimum useful markdown files, explain the read path, and propose a memory update without directly editing durable memory.
 
+The first setup experiment should prove:
+
+> A user can place the Lazy Mem folder anywhere stable, run one attach command inside a project, and then get a generic agent harness to load Lazy Mem through `.lazy-mem`.
+
 The first recall/token-spend benchmark is deliberately future work. V0 only needs logs and trace structure that make the future benchmark possible.
 
 ## Success Criteria
@@ -244,8 +347,10 @@ The first recall/token-spend benchmark is deliberately future work. V0 only need
 V0 is successful when:
 
 - the central scaffold exists and is committed
-- a project can opt in with a `.lazy-mem` pointer file
+- a project can opt in with one attach command that creates a `.lazy-mem` pointer file
+- the pointer file is plain YAML and readable by any agent harness
 - an agent can follow `SYSTEM.md` and `ROUTERS.md`
+- `SYSTEM.md` contains the universal harness instructions
 - project, people, procedure, and state pages have consistent frontmatter
 - memory write proposals go to `proposals/pending/`
 - read traces go to `logs/read-traces/`
@@ -260,6 +365,8 @@ V0 is successful when:
 5. Add initial Sav person memory.
 6. Add code recall and project handoff procedures.
 7. Add log and proposal formats.
-8. Add an example `.lazy-mem` pointer file template.
-9. Commit the baseline scaffold.
-10. Create a test branch or worktree for the first agent recall experiment.
+8. Add `templates/project-pointer.yaml`.
+9. Add `templates/project.md`.
+10. Add `bin/lazy-mem attach`.
+11. Commit the baseline scaffold.
+12. Create a test branch or worktree for the first agent recall experiment.
