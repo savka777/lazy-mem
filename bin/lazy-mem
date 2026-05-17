@@ -86,6 +86,50 @@ write_project_page() {
     "$MEMORY_REPO/templates/project.md" >"$page_file"
 }
 
+write_agents_md() {
+  agents_file=$1
+  tmp_file="$agents_file.tmp.$$"
+  start_marker='<!-- lazy-mem:start -->'
+  end_marker='<!-- lazy-mem:end -->'
+  template_file="$MEMORY_REPO/templates/AGENTS.md"
+
+  if [ -f "$agents_file" ]; then
+    if grep -F "$start_marker" "$agents_file" >/dev/null 2>&1 &&
+      grep -F "$end_marker" "$agents_file" >/dev/null 2>&1; then
+      awk -v start="$start_marker" -v end="$end_marker" -v template="$template_file" '
+        function print_template() {
+          while ((getline line < template) > 0) {
+            print line
+          }
+          close(template)
+        }
+        $0 == start {
+          print_template()
+          in_lazy_mem_block = 1
+          next
+        }
+        in_lazy_mem_block && $0 == end {
+          in_lazy_mem_block = 0
+          next
+        }
+        !in_lazy_mem_block {
+          print
+        }
+      ' "$agents_file" >"$tmp_file"
+    else
+      {
+        cat "$agents_file"
+        printf '\n\n'
+        cat "$template_file"
+      } >"$tmp_file"
+    fi
+  else
+    cat "$template_file" >"$tmp_file"
+  fi
+
+  mv "$tmp_file" "$agents_file"
+}
+
 attach() {
   project_path=.
   project_id=
@@ -122,9 +166,11 @@ attach() {
   validate_project_id "$project_id"
 
   pointer_file="$project_abs/.lazy-mem"
+  agents_file="$project_abs/AGENTS.md"
   project_page="$MEMORY_REPO/projects/$project_id.md"
 
   write_pointer "$pointer_file" "$project_id"
+  write_agents_md "$agents_file"
 
   if [ ! -f "$project_page" ]; then
     write_project_page "$project_page" "$project_id" "$project_title" "$project_abs"
@@ -133,6 +179,7 @@ attach() {
   echo "Attached Lazy Mem"
   echo "Project id: $project_id"
   echo "Pointer: $pointer_file"
+  echo "Agents: $agents_file"
   echo "System: $MEMORY_REPO/SYSTEM.md"
 }
 

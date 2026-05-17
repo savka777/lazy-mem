@@ -39,6 +39,7 @@ assert_file "RULES.md"
 assert_file "ROUTERS.md"
 assert_file "lazy-mem.yaml"
 assert_file "bin/lazy-mem"
+assert_file "templates/AGENTS.md"
 assert_file "templates/project-pointer.yaml"
 assert_file "templates/project.md"
 assert_file "projects/_template.md"
@@ -78,18 +79,25 @@ while [ -f "$project_page" ]; do
   project_id="smoke-project-$$-$counter"
   project_page="$ROOT/projects/$project_id.md"
 done
+fresh_project_id="$project_id-fresh"
+fresh_project_page="$ROOT/projects/$fresh_project_id.md"
 created_project_page=0
+created_fresh_project_page=0
 
 cleanup() {
   rm -rf "$tmpdir"
   if [ "$created_project_page" = "1" ]; then
     rm -f "$project_page"
   fi
+  if [ "$created_fresh_project_page" = "1" ]; then
+    rm -f "$fresh_project_page"
+  fi
 }
 
 trap cleanup EXIT
 
 mkdir -p "$tmpdir/example-project"
+printf '# Existing Instructions\n\nKeep this line.\n' >"$tmpdir/example-project/AGENTS.md"
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 if [ -f "$project_page" ]; then
   created_project_page=1
@@ -105,10 +113,42 @@ if [ ! -f "$project_page" ]; then
   exit 1
 fi
 
+if [ ! -f "$tmpdir/example-project/AGENTS.md" ]; then
+  echo "attach did not create AGENTS.md" >&2
+  exit 1
+fi
+
 grep -F "memory_repo: $ROOT" "$tmpdir/example-project/.lazy-mem" >/dev/null
 grep -F "project_id: $project_id" "$tmpdir/example-project/.lazy-mem" >/dev/null
 grep -F "system_file: SYSTEM.md" "$tmpdir/example-project/.lazy-mem" >/dev/null
+grep -F "# Existing Instructions" "$tmpdir/example-project/AGENTS.md" >/dev/null
+grep -F "Keep this line." "$tmpdir/example-project/AGENTS.md" >/dev/null
+grep -F "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
+grep -F "Before work, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/AGENTS.md" >/dev/null
+grep -F "<!-- lazy-mem:end -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "id: project.$project_id" "$project_page" >/dev/null
 grep -F "Project memory page for \`$project_id\`." "$project_page" >/dev/null
+
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+agents_block_count=$(grep -c "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" || true)
+if [ "$agents_block_count" -ne 1 ]; then
+  echo "attach duplicated Lazy Mem AGENTS.md block" >&2
+  exit 1
+fi
+
+mkdir -p "$tmpdir/fresh-project"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/fresh-project" --id "$fresh_project_id" >/dev/null
+if [ -f "$fresh_project_page" ]; then
+  created_fresh_project_page=1
+fi
+
+if [ ! -f "$tmpdir/fresh-project/AGENTS.md" ]; then
+  echo "attach did not create fresh AGENTS.md" >&2
+  exit 1
+fi
+
+grep -F "<!-- lazy-mem:start -->" "$tmpdir/fresh-project/AGENTS.md" >/dev/null
+grep -F "Before work, check for \`.lazy-mem\` in this project." "$tmpdir/fresh-project/AGENTS.md" >/dev/null
+grep -F "<!-- lazy-mem:end -->" "$tmpdir/fresh-project/AGENTS.md" >/dev/null
 
 echo "lazy-mem smoke test passed"

@@ -6,7 +6,7 @@ The V0 idea is simple:
 
 1. Keep durable memory in this folder.
 2. Attach any project with a `.lazy-mem` pointer file.
-3. Teach any agent to read `.lazy-mem`, then `SYSTEM.md`.
+3. Add a tiny `AGENTS.md` bootstrap so compatible harnesses read `.lazy-mem`, then `SYSTEM.md`.
 4. Route to the smallest useful memory files instead of preloading everything.
 5. Write memory updates as proposals unless the user explicitly asks for direct edits.
 
@@ -18,13 +18,8 @@ From inside any project:
 /path/to/lazy-mem/bin/lazy-mem attach .
 ```
 
-Then tell an agent:
-
-```text
-Use Lazy Mem.
-```
-
-The agent should read the project's `.lazy-mem` pointer, load this repo's `SYSTEM.md`, and follow the routing rules.
+This creates or updates the project's `.lazy-mem` pointer and `AGENTS.md` bootstrap.
+Compatible agent harnesses should then read `.lazy-mem`, load this repo's `SYSTEM.md`, and follow the routing rules.
 
 ## Core Contract
 
