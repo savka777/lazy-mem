@@ -1,0 +1,159 @@
+#!/usr/bin/env sh
+set -eu
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+MEMORY_REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  lazy-mem attach [project_path] [--id project-id]
+  lazy-mem help
+  lazy-mem --help
+  lazy-mem -h
+EOF
+}
+
+die() {
+  echo "lazy-mem: $*" >&2
+  echo >&2
+  usage >&2
+  exit 1
+}
+
+slugify() {
+  printf '%s' "$1" |
+    tr '[:upper:]' '[:lower:]' |
+    sed 's/[^a-z0-9][^a-z0-9]*/-/g; s/^-//; s/-$//'
+}
+
+yaml_quote() {
+  escaped=$(printf '%s' "$1" | sed "s/'/''/g")
+  printf "'%s'" "$escaped"
+}
+
+write_pointer() {
+  pointer_file=$1
+  project_id=$2
+
+  {
+    printf 'memory_repo: %s\n' "$MEMORY_REPO"
+    printf 'project_id: %s\n' "$project_id"
+    printf 'system_file: SYSTEM.md\n'
+  } >"$pointer_file"
+}
+
+write_project_page() {
+  page_file=$1
+  project_id=$2
+  project_title=$3
+  project_path=$4
+  today=$(date +%F)
+
+  {
+    printf -- '---\n'
+    printf 'id: %s\n' "$(yaml_quote "project.$project_id")"
+    printf 'type: project\n'
+    printf 'title: %s\n' "$(yaml_quote "$project_title")"
+    printf 'project_id: %s\n' "$(yaml_quote "$project_id")"
+    printf 'authority: primary\n'
+    printf 'freshness: %s\n' "$(yaml_quote "$today")"
+    printf 'tags:\n'
+    printf '  - project\n'
+    printf 'links_to:\n'
+    printf '  - procedure.code-recall\n'
+    printf '  - procedure.project-handoff\n'
+    printf -- '---\n'
+    printf '\n'
+    printf '# %s\n' "$project_title"
+    printf '\n'
+    printf '## What This Is\n'
+    printf '\n'
+    printf 'Project memory page for `%s`.\n' "$project_id"
+    printf '\n'
+    printf '## Current Shape\n'
+    printf '\n'
+    printf -- '- Main repo path: %s\n' "$project_path"
+    printf -- '- Current status: attached to Lazy Mem\n'
+    printf '\n'
+    printf '## Key Commands\n'
+    printf '\n'
+    printf '```bash\n'
+    printf '# Add project-specific commands here.\n'
+    printf '```\n'
+    printf '\n'
+    printf '## Durable Decisions\n'
+    printf '\n'
+    printf -- '- Attached to Lazy Mem on %s.\n' "$today"
+    printf '\n'
+    printf '## Known Gotchas\n'
+    printf '\n'
+    printf -- '- Add project-specific gotchas here.\n'
+    printf '\n'
+    printf '## Relevant Procedures\n'
+    printf '\n'
+    printf -- '- [[Code Recall]]\n'
+    printf -- '- [[Project Handoff]]\n'
+  } >"$page_file"
+}
+
+attach() {
+  project_path=.
+  project_id=
+
+  if [ "$#" -gt 0 ] && [ "$1" != "--id" ]; then
+    project_path=$1
+    shift
+  fi
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --id)
+        shift
+        [ "$#" -gt 0 ] || die "--id requires a project id"
+        project_id=$1
+        shift
+        ;;
+      *)
+        die "unknown attach argument: $1"
+        ;;
+    esac
+  done
+
+  mkdir -p "$project_path"
+  project_abs="$(cd "$project_path" && pwd)"
+  project_title=$(basename "$project_abs")
+
+  if [ -z "$project_id" ]; then
+    project_id=$(slugify "$project_title")
+  fi
+
+  [ -n "$project_id" ] || die "could not derive project id"
+
+  pointer_file="$project_abs/.lazy-mem"
+  project_page="$MEMORY_REPO/projects/$project_id.md"
+
+  write_pointer "$pointer_file" "$project_id"
+
+  if [ ! -f "$project_page" ]; then
+    write_project_page "$project_page" "$project_id" "$project_title" "$project_abs"
+  fi
+
+  echo "Attached Lazy Mem"
+  echo "Project id: $project_id"
+  echo "Pointer: $pointer_file"
+  echo "System: $MEMORY_REPO/SYSTEM.md"
+}
+
+case "${1:-help}" in
+  attach)
+    shift
+    attach "$@"
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    die "unknown command: $1"
+    ;;
+esac
