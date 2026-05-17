@@ -27,9 +27,23 @@ slugify() {
     sed 's/[^a-z0-9][^a-z0-9]*/-/g; s/^-//; s/-$//'
 }
 
+validate_project_id() {
+  if ! printf '%s' "$1" | grep -E '^[a-z0-9]([a-z0-9]|-[a-z0-9])*$' >/dev/null 2>&1; then
+    die "invalid project id: $1"
+  fi
+}
+
 yaml_quote() {
   escaped=$(printf '%s' "$1" | sed "s/'/''/g")
   printf "'%s'" "$escaped"
+}
+
+yaml_scalar() {
+  if printf '%s' "$1" | grep -E '^[-._/A-Za-z0-9]+$' >/dev/null 2>&1; then
+    printf '%s' "$1"
+  else
+    yaml_quote "$1"
+  fi
 }
 
 write_pointer() {
@@ -37,8 +51,8 @@ write_pointer() {
   project_id=$2
 
   {
-    printf 'memory_repo: %s\n' "$MEMORY_REPO"
-    printf 'project_id: %s\n' "$project_id"
+    printf 'memory_repo: %s\n' "$(yaml_scalar "$MEMORY_REPO")"
+    printf 'project_id: %s\n' "$(yaml_scalar "$project_id")"
     printf 'system_file: SYSTEM.md\n'
   } >"$pointer_file"
 }
@@ -51,7 +65,7 @@ write_project_page() {
   today=$(date +%F)
 
   {
-    printf -- '---\n'
+    printf '%s\n' '---'
     printf 'id: %s\n' "$(yaml_quote "project.$project_id")"
     printf 'type: project\n'
     printf 'title: %s\n' "$(yaml_quote "$project_title")"
@@ -63,7 +77,7 @@ write_project_page() {
     printf 'links_to:\n'
     printf '  - procedure.code-recall\n'
     printf '  - procedure.project-handoff\n'
-    printf -- '---\n'
+    printf '%s\n' '---'
     printf '\n'
     printf '# %s\n' "$project_title"
     printf '\n'
@@ -73,8 +87,8 @@ write_project_page() {
     printf '\n'
     printf '## Current Shape\n'
     printf '\n'
-    printf -- '- Main repo path: %s\n' "$project_path"
-    printf -- '- Current status: attached to Lazy Mem\n'
+    printf '%s\n' "- Main repo path: $project_path"
+    printf '%s\n' '- Current status: attached to Lazy Mem'
     printf '\n'
     printf '## Key Commands\n'
     printf '\n'
@@ -84,16 +98,16 @@ write_project_page() {
     printf '\n'
     printf '## Durable Decisions\n'
     printf '\n'
-    printf -- '- Attached to Lazy Mem on %s.\n' "$today"
+    printf '%s\n' "- Attached to Lazy Mem on $today."
     printf '\n'
     printf '## Known Gotchas\n'
     printf '\n'
-    printf -- '- Add project-specific gotchas here.\n'
+    printf '%s\n' '- Add project-specific gotchas here.'
     printf '\n'
     printf '## Relevant Procedures\n'
     printf '\n'
-    printf -- '- [[Code Recall]]\n'
-    printf -- '- [[Project Handoff]]\n'
+    printf '%s\n' '- [[Code Recall]]'
+    printf '%s\n' '- [[Project Handoff]]'
   } >"$page_file"
 }
 
@@ -112,6 +126,7 @@ attach() {
         shift
         [ "$#" -gt 0 ] || die "--id requires a project id"
         project_id=$1
+        validate_project_id "$project_id"
         shift
         ;;
       *)
@@ -129,6 +144,7 @@ attach() {
   fi
 
   [ -n "$project_id" ] || die "could not derive project id"
+  validate_project_id "$project_id"
 
   pointer_file="$project_abs/.lazy-mem"
   project_page="$MEMORY_REPO/projects/$project_id.md"
