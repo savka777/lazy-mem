@@ -10,6 +10,8 @@ The V0 idea is simple:
 4. Route to the smallest useful memory files instead of preloading everything.
 5. Write memory updates as proposals unless the user explicitly asks for direct edits.
 
+`.lazy-mem` is reserved for project pointer files. `lazy-cache/` is reserved for future generated helper artifacts.
+
 ## Quick Start
 
 From inside any project:

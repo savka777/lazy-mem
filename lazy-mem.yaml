@@ -23,6 +23,7 @@ folders:
   proposals: proposals
   logs: logs
   benchmarks: benchmarks
+  cache: lazy-cache
 
 trace_policy:
   read_traces: logs/read-traces

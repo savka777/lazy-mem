@@ -1,1 +1,3 @@
 docs/superpowers/
+lazy-cache/*
+!lazy-cache/README.md
