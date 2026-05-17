@@ -1,0 +1,36 @@
+schema_version: 0.1.0
+name: lazy-mem
+description: Central markdown memory repo for agent harnesses.
+
+pointer:
+  filename: .lazy-mem
+  required_fields:
+    - memory_repo
+    - project_id
+    - system_file
+
+system:
+  file: SYSTEM.md
+  router: ROUTERS.md
+  rules: RULES.md
+
+folders:
+  projects: projects
+  people: people
+  procedures: procedures
+  state: state
+  sources: sources
+  proposals: proposals
+  logs: logs
+  benchmarks: benchmarks
+
+trace_policy:
+  read_traces: logs/read-traces
+  write_traces: logs/write-traces
+  experiments: logs/experiments
+  token_accounting: approximate
+
+write_policy:
+  durable_memory_default: proposal
+  append_only_logs: direct
+  direct_updates_require_user_request: true
