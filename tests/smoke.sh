@@ -70,7 +70,7 @@ assert_contains "RULES.md" "Do not directly edit durable memory by default."
 assert_contains "lazy-mem.yaml" "schema_version: 0.1.0"
 
 tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"' EXIT
+trap 'rm -rf "$tmpdir"; rm -f "$ROOT/projects/example-project.md"' EXIT
 
 mkdir -p "$tmpdir/example-project"
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id example-project >/dev/null
