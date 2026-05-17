@@ -1,10 +1,10 @@
 ---
 id: project.__PROJECT_ID__
 type: project
-title: __PROJECT_TITLE__
-project_id: __PROJECT_ID__
+title: __PROJECT_TITLE_YAML__
+project_id: __PROJECT_ID_YAML__
 authority: primary
-freshness: __DATE__
+freshness: __DATE_YAML__
 tags:
   - project
 links_to:

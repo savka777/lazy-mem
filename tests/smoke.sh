@@ -70,18 +70,45 @@ assert_contains "RULES.md" "Do not directly edit durable memory by default."
 assert_contains "lazy-mem.yaml" "schema_version: 0.1.0"
 
 tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"; rm -f "$ROOT/projects/example-project.md"' EXIT
+project_id="smoke-project-$$"
+project_page="$ROOT/projects/$project_id.md"
+counter=0
+while [ -f "$project_page" ]; do
+  counter=$((counter + 1))
+  project_id="smoke-project-$$-$counter"
+  project_page="$ROOT/projects/$project_id.md"
+done
+created_project_page=0
+
+cleanup() {
+  rm -rf "$tmpdir"
+  if [ "$created_project_page" = "1" ]; then
+    rm -f "$project_page"
+  fi
+}
+
+trap cleanup EXIT
 
 mkdir -p "$tmpdir/example-project"
-"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id example-project >/dev/null
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+if [ -f "$project_page" ]; then
+  created_project_page=1
+fi
 
 if [ ! -f "$tmpdir/example-project/.lazy-mem" ]; then
   echo "attach did not create .lazy-mem pointer" >&2
   exit 1
 fi
 
+if [ ! -f "$project_page" ]; then
+  echo "attach did not create project memory page" >&2
+  exit 1
+fi
+
 grep -F "memory_repo: $ROOT" "$tmpdir/example-project/.lazy-mem" >/dev/null
-grep -F "project_id: example-project" "$tmpdir/example-project/.lazy-mem" >/dev/null
+grep -F "project_id: $project_id" "$tmpdir/example-project/.lazy-mem" >/dev/null
 grep -F "system_file: SYSTEM.md" "$tmpdir/example-project/.lazy-mem" >/dev/null
+grep -F "id: project.$project_id" "$project_page" >/dev/null
+grep -F "Project memory page for \`$project_id\`." "$project_page" >/dev/null
 
 echo "lazy-mem smoke test passed"

@@ -46,15 +46,20 @@ yaml_scalar() {
   fi
 }
 
+sed_escape_replacement() {
+  printf '%s' "$1" | sed 's/[\\&|]/\\&/g'
+}
+
 write_pointer() {
   pointer_file=$1
   project_id=$2
+  memory_repo_value=$(sed_escape_replacement "$(yaml_scalar "$MEMORY_REPO")")
+  project_id_value=$(sed_escape_replacement "$(yaml_scalar "$project_id")")
 
-  {
-    printf 'memory_repo: %s\n' "$(yaml_scalar "$MEMORY_REPO")"
-    printf 'project_id: %s\n' "$(yaml_scalar "$project_id")"
-    printf 'system_file: SYSTEM.md\n'
-  } >"$pointer_file"
+  sed \
+    -e "s|__MEMORY_REPO__|$memory_repo_value|g" \
+    -e "s|__PROJECT_ID__|$project_id_value|g" \
+    "$MEMORY_REPO/templates/project-pointer.yaml" >"$pointer_file"
 }
 
 write_project_page() {
@@ -63,52 +68,22 @@ write_project_page() {
   project_title=$3
   project_path=$4
   today=$(date +%F)
+  project_id_value=$(sed_escape_replacement "$project_id")
+  project_id_yaml=$(sed_escape_replacement "$(yaml_quote "$project_id")")
+  project_title_value=$(sed_escape_replacement "$project_title")
+  project_title_yaml=$(sed_escape_replacement "$(yaml_quote "$project_title")")
+  project_path_value=$(sed_escape_replacement "$project_path")
+  today_yaml=$(sed_escape_replacement "$(yaml_quote "$today")")
 
-  {
-    printf '%s\n' '---'
-    printf 'id: %s\n' "$(yaml_quote "project.$project_id")"
-    printf 'type: project\n'
-    printf 'title: %s\n' "$(yaml_quote "$project_title")"
-    printf 'project_id: %s\n' "$(yaml_quote "$project_id")"
-    printf 'authority: primary\n'
-    printf 'freshness: %s\n' "$(yaml_quote "$today")"
-    printf 'tags:\n'
-    printf '  - project\n'
-    printf 'links_to:\n'
-    printf '  - procedure.code-recall\n'
-    printf '  - procedure.project-handoff\n'
-    printf '%s\n' '---'
-    printf '\n'
-    printf '# %s\n' "$project_title"
-    printf '\n'
-    printf '## What This Is\n'
-    printf '\n'
-    printf 'Project memory page for `%s`.\n' "$project_id"
-    printf '\n'
-    printf '## Current Shape\n'
-    printf '\n'
-    printf '%s\n' "- Main repo path: $project_path"
-    printf '%s\n' '- Current status: attached to Lazy Mem'
-    printf '\n'
-    printf '## Key Commands\n'
-    printf '\n'
-    printf '```bash\n'
-    printf '# Add project-specific commands here.\n'
-    printf '```\n'
-    printf '\n'
-    printf '## Durable Decisions\n'
-    printf '\n'
-    printf '%s\n' "- Attached to Lazy Mem on $today."
-    printf '\n'
-    printf '## Known Gotchas\n'
-    printf '\n'
-    printf '%s\n' '- Add project-specific gotchas here.'
-    printf '\n'
-    printf '## Relevant Procedures\n'
-    printf '\n'
-    printf '%s\n' '- [[Code Recall]]'
-    printf '%s\n' '- [[Project Handoff]]'
-  } >"$page_file"
+  sed \
+    -e "s|__PROJECT_ID_YAML__|$project_id_yaml|g" \
+    -e "s|__PROJECT_TITLE_YAML__|$project_title_yaml|g" \
+    -e "s|__DATE_YAML__|$today_yaml|g" \
+    -e "s|__PROJECT_ID__|$project_id_value|g" \
+    -e "s|__PROJECT_TITLE__|$project_title_value|g" \
+    -e "s|__PROJECT_PATH__|$project_path_value|g" \
+    -e "s|__DATE__|$today|g" \
+    "$MEMORY_REPO/templates/project.md" >"$page_file"
 }
 
 attach() {
