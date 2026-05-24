@@ -20,6 +20,13 @@ Do not preload the whole memory repo.
 7. Stop reading when enough context exists.
 8. If the task meaningfully used Lazy Mem, write or propose a read trace under `logs/read-traces/`.
 
+## Memory Research
+
+If the task spans several memory areas, read `procedures/memory-explorer.md`.
+
+When the harness supports subagents, the main agent acts as orchestrator and may spawn focused memory scouts.
+When subagents are unavailable, follow the same traversal procedure inline.
+
 ## Write Policy
 
 Do not directly edit durable memory by default.
