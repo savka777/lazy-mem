@@ -181,6 +181,9 @@ attach() {
   echo "Pointer: $pointer_file"
   echo "Agents: $agents_file"
   echo "System: $MEMORY_REPO/SYSTEM.md"
+  echo
+  echo "Next: start an agent in this project and say: hello"
+  echo "Expected: compatible agents read AGENTS.md, then .lazy-mem, then $MEMORY_REPO/SYSTEM.md."
 }
 
 case "${1:-help}" in

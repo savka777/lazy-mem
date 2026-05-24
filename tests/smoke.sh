@@ -39,6 +39,7 @@ assert_file "RULES.md"
 assert_file "ROUTERS.md"
 assert_file "lazy-mem.yaml"
 assert_file "bin/lazy-mem"
+assert_file "tests/codex-agents-autoload.sh"
 assert_file "templates/AGENTS.md"
 assert_file "templates/project-pointer.yaml"
 assert_file "templates/project.md"
@@ -64,6 +65,7 @@ assert_dir "logs/write-traces"
 assert_dir "logs/experiments"
 
 assert_executable "bin/lazy-mem"
+assert_executable "tests/codex-agents-autoload.sh"
 
 assert_contains "SYSTEM.md" "If a project has a .lazy-mem pointer file, read it first."
 assert_contains "SYSTEM.md" "Do not preload the whole memory repo."
@@ -104,7 +106,8 @@ trap cleanup EXIT
 
 mkdir -p "$tmpdir/example-project"
 printf '# Existing Instructions\n\nKeep this line.\n' >"$tmpdir/example-project/AGENTS.md"
-"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+attach_output="$tmpdir/attach-output.txt"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >"$attach_output"
 if [ -f "$project_page" ]; then
   created_project_page=1
 fi
@@ -130,10 +133,12 @@ grep -F "system_file: SYSTEM.md" "$tmpdir/example-project/.lazy-mem" >/dev/null
 grep -F "# Existing Instructions" "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "Keep this line." "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
-grep -F "Before work, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/AGENTS.md" >/dev/null
+grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:end -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "id: project.$project_id" "$project_page" >/dev/null
 grep -F "Project memory page for \`$project_id\`." "$project_page" >/dev/null
+grep -F "Next: start an agent in this project and say: hello" "$attach_output" >/dev/null
+grep -F "Expected: compatible agents read AGENTS.md, then .lazy-mem, then $ROOT/SYSTEM.md." "$attach_output" >/dev/null
 
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 agents_block_count=$(grep -c "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" || true)
@@ -154,7 +159,7 @@ if [ ! -f "$tmpdir/fresh-project/AGENTS.md" ]; then
 fi
 
 grep -F "<!-- lazy-mem:start -->" "$tmpdir/fresh-project/AGENTS.md" >/dev/null
-grep -F "Before work, check for \`.lazy-mem\` in this project." "$tmpdir/fresh-project/AGENTS.md" >/dev/null
+grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/fresh-project/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:end -->" "$tmpdir/fresh-project/AGENTS.md" >/dev/null
 
 echo "lazy-mem smoke test passed"
