@@ -37,3 +37,10 @@ Read `procedures/project-handoff.md` when:
 - summarizing current status
 - pausing work for another agent
 - creating a plan from project memory
+
+Read `procedures/memory-explorer.md` when:
+
+- the task spans multiple memory areas
+- answering would require reading too many files in the main context
+- subagents can scout project, trace, person, source, or procedure memory
+- the user asks for status, history, prior decisions, or cross-project context

@@ -20,7 +20,7 @@ assert_dir() {
 assert_contains() {
   file="$1"
   pattern="$2"
-  if ! grep -F "$pattern" "$ROOT/$file" >/dev/null 2>&1; then
+  if ! grep -F -- "$pattern" "$ROOT/$file" >/dev/null 2>&1; then
     echo "expected '$file' to contain: $pattern" >&2
     exit 1
   fi
@@ -48,6 +48,7 @@ assert_file "people/_template.md"
 assert_file "people/sav.md"
 assert_file "procedures/_template.md"
 assert_file "procedures/code-recall.md"
+assert_file "procedures/memory-explorer.md"
 assert_file "procedures/project-handoff.md"
 assert_file "state/current-focus.md"
 assert_file "state/active-projects.md"
@@ -66,10 +67,14 @@ assert_executable "bin/lazy-mem"
 
 assert_contains "SYSTEM.md" "If a project has a .lazy-mem pointer file, read it first."
 assert_contains "SYSTEM.md" "Do not preload the whole memory repo."
+assert_contains "SYSTEM.md" 'If the task spans several memory areas, read `procedures/memory-explorer.md`.'
 assert_contains "ROUTERS.md" "Read projects/ before procedures/ when project_id is known."
+assert_contains "ROUTERS.md" 'Read `procedures/memory-explorer.md` when:'
 assert_contains "RULES.md" "Do not directly edit durable memory by default."
 assert_contains "lazy-mem.yaml" "schema_version: 0.1.0"
 assert_contains "lazy-mem.yaml" "cache: lazy-cache"
+assert_contains "procedures/memory-explorer.md" "task: {}"
+assert_contains "procedures/memory-explorer.md" "- none by default"
 
 tmpdir="$(mktemp -d)"
 project_id="smoke-project-$$"
