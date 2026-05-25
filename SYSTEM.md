@@ -20,6 +20,21 @@ Do not preload the whole memory repo.
 7. Stop reading when enough context exists.
 8. If the task meaningfully used Lazy Mem, write or propose a read trace under `logs/read-traces/`.
 
+## Project Layers
+
+Project memory is layered.
+
+Start with `projects/<project_id>.md`. Treat it as the project hub: read the summary, then use `Open First` and `Context Index` links to choose the smallest useful next file.
+
+Project folders may contain short section indexes:
+
+- `status/current.md` for current focus and active work
+- `decisions/README.md` for durable choices
+- `features/README.md` for feature-level context
+- `specs/README.md` for deeper design notes
+
+If a branch is stale or irrelevant, return to the project hub and choose a narrower file. When creating a deeper project note, add a link from the nearest index so the next agent can find it.
+
 ## Memory Research
 
 If the task spans several memory areas, read `procedures/memory-explorer.md`.

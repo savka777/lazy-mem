@@ -43,8 +43,16 @@ assert_file "tests/codex-agents-autoload.sh"
 assert_file "templates/AGENTS.md"
 assert_file "templates/project-pointer.yaml"
 assert_file "templates/project.md"
+assert_file "templates/project-decisions-readme.md"
+assert_file "templates/project-features-readme.md"
+assert_file "templates/project-specs-readme.md"
+assert_file "templates/project-status-current.md"
 assert_file "projects/_template.md"
 assert_file "projects/lazy-mem.md"
+assert_file "projects/lazy-mem/status/current.md"
+assert_file "projects/lazy-mem/decisions/README.md"
+assert_file "projects/lazy-mem/features/README.md"
+assert_file "projects/lazy-mem/specs/README.md"
 assert_file "people/_template.md"
 assert_file "people/sav.md"
 assert_file "procedures/_template.md"
@@ -69,8 +77,10 @@ assert_executable "tests/codex-agents-autoload.sh"
 
 assert_contains "SYSTEM.md" "If a project has a .lazy-mem pointer file, read it first."
 assert_contains "SYSTEM.md" "Do not preload the whole memory repo."
+assert_contains "SYSTEM.md" "Project memory is layered."
 assert_contains "SYSTEM.md" 'If the task spans several memory areas, read `procedures/memory-explorer.md`.'
 assert_contains "ROUTERS.md" "Read projects/ before procedures/ when project_id is known."
+assert_contains "ROUTERS.md" "Use the project hub as the first layer."
 assert_contains "ROUTERS.md" 'Read `procedures/memory-explorer.md` when:'
 assert_contains "RULES.md" "Do not directly edit durable memory by default."
 assert_contains "lazy-mem.yaml" "schema_version: 0.1.0"
@@ -81,25 +91,41 @@ assert_contains "procedures/memory-explorer.md" "- none by default"
 tmpdir="$(mktemp -d)"
 project_id="smoke-project-$$"
 project_page="$ROOT/projects/$project_id.md"
+project_dir="$ROOT/projects/$project_id"
+project_status_current="$project_dir/status/current.md"
+project_decisions_index="$project_dir/decisions/README.md"
+project_features_index="$project_dir/features/README.md"
+project_specs_index="$project_dir/specs/README.md"
 counter=0
-while [ -f "$project_page" ]; do
+while [ -e "$project_page" ] || [ -e "$project_dir" ]; do
   counter=$((counter + 1))
   project_id="smoke-project-$$-$counter"
   project_page="$ROOT/projects/$project_id.md"
+  project_dir="$ROOT/projects/$project_id"
+  project_status_current="$project_dir/status/current.md"
+  project_decisions_index="$project_dir/decisions/README.md"
+  project_features_index="$project_dir/features/README.md"
+  project_specs_index="$project_dir/specs/README.md"
 done
 fresh_project_id="$project_id-fresh"
 fresh_project_page="$ROOT/projects/$fresh_project_id.md"
-created_project_page=0
-created_fresh_project_page=0
+fresh_project_dir="$ROOT/projects/$fresh_project_id"
+fresh_project_status_current="$fresh_project_dir/status/current.md"
+fresh_counter=0
+while [ -e "$fresh_project_page" ] || [ -e "$fresh_project_dir" ]; do
+  fresh_counter=$((fresh_counter + 1))
+  fresh_project_id="$project_id-fresh-$fresh_counter"
+  fresh_project_page="$ROOT/projects/$fresh_project_id.md"
+  fresh_project_dir="$ROOT/projects/$fresh_project_id"
+  fresh_project_status_current="$fresh_project_dir/status/current.md"
+done
 
 cleanup() {
   rm -rf "$tmpdir"
-  if [ "$created_project_page" = "1" ]; then
-    rm -f "$project_page"
-  fi
-  if [ "$created_fresh_project_page" = "1" ]; then
-    rm -f "$fresh_project_page"
-  fi
+  rm -f "$project_page"
+  rm -rf "$project_dir"
+  rm -f "$fresh_project_page"
+  rm -rf "$fresh_project_dir"
 }
 
 trap cleanup EXIT
@@ -108,9 +134,6 @@ mkdir -p "$tmpdir/example-project"
 printf '# Existing Instructions\n\nKeep this line.\n' >"$tmpdir/example-project/AGENTS.md"
 attach_output="$tmpdir/attach-output.txt"
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >"$attach_output"
-if [ -f "$project_page" ]; then
-  created_project_page=1
-fi
 
 if [ ! -f "$tmpdir/example-project/.lazy-mem" ]; then
   echo "attach did not create .lazy-mem pointer" >&2
@@ -119,6 +142,26 @@ fi
 
 if [ ! -f "$project_page" ]; then
   echo "attach did not create project memory page" >&2
+  exit 1
+fi
+
+if [ ! -f "$project_status_current" ]; then
+  echo "attach did not create project current status file" >&2
+  exit 1
+fi
+
+if [ ! -f "$project_decisions_index" ]; then
+  echo "attach did not create project decisions index" >&2
+  exit 1
+fi
+
+if [ ! -f "$project_features_index" ]; then
+  echo "attach did not create project features index" >&2
+  exit 1
+fi
+
+if [ ! -f "$project_specs_index" ]; then
+  echo "attach did not create project specs index" >&2
   exit 1
 fi
 
@@ -136,9 +179,30 @@ grep -F "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:end -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "id: project.$project_id" "$project_page" >/dev/null
-grep -F "Project memory page for \`$project_id\`." "$project_page" >/dev/null
-grep -F "Next: start an agent in this project and say: hello" "$attach_output" >/dev/null
-grep -F "Expected: compatible agents read AGENTS.md, then .lazy-mem, then $ROOT/SYSTEM.md." "$attach_output" >/dev/null
+grep -F "Project memory hub for \`$project_id\`." "$project_page" >/dev/null
+grep -F "## Open First" "$project_page" >/dev/null
+grep -F "$project_id/status/current.md" "$project_page" >/dev/null
+grep -F "$project_id/decisions/README.md" "$project_page" >/dev/null
+grep -F "$project_id/features/README.md" "$project_page" >/dev/null
+grep -F "$project_id/specs/README.md" "$project_page" >/dev/null
+grep -F "id: project.$project_id.status.current" "$project_status_current" >/dev/null
+grep -F "id: project.$project_id.decisions" "$project_decisions_index" >/dev/null
+grep -F "id: project.$project_id.features" "$project_features_index" >/dev/null
+grep -F "id: project.$project_id.specs" "$project_specs_index" >/dev/null
+if grep -F "Project memory scaffold" "$project_features_index" >/dev/null; then
+  echo "generic project feature index should not include Lazy Mem-specific rows" >&2
+  exit 1
+fi
+if grep -F "Project memory layers" "$project_specs_index" >/dev/null; then
+  echo "generic project spec index should not include Lazy Mem-specific rows" >&2
+  exit 1
+fi
+grep -F "Ready: start your agent from this project root." "$attach_output" >/dev/null
+grep -F "Compatible agents will read AGENTS.md, follow .lazy-mem, and load $ROOT/SYSTEM.md." "$attach_output" >/dev/null
+if grep -F "say: hello" "$attach_output" >/dev/null; then
+  echo "attach output should not include smoke-test prompt copy" >&2
+  exit 1
+fi
 
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 agents_block_count=$(grep -c "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" || true)
@@ -146,20 +210,26 @@ if [ "$agents_block_count" -ne 1 ]; then
   echo "attach duplicated Lazy Mem AGENTS.md block" >&2
   exit 1
 fi
+printf 'SENTINEL existing feature index\n' >"$project_features_index"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+grep -F "SENTINEL existing feature index" "$project_features_index" >/dev/null
 
-mkdir -p "$tmpdir/fresh-project"
-"$ROOT/bin/lazy-mem" attach "$tmpdir/fresh-project" --id "$fresh_project_id" >/dev/null
-if [ -f "$fresh_project_page" ]; then
-  created_fresh_project_page=1
-fi
+mkdir -p "$tmpdir/API: Gateway"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/API: Gateway" --id "$fresh_project_id" >/dev/null
 
-if [ ! -f "$tmpdir/fresh-project/AGENTS.md" ]; then
+if [ ! -f "$tmpdir/API: Gateway/AGENTS.md" ]; then
   echo "attach did not create fresh AGENTS.md" >&2
   exit 1
 fi
 
-grep -F "<!-- lazy-mem:start -->" "$tmpdir/fresh-project/AGENTS.md" >/dev/null
-grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/fresh-project/AGENTS.md" >/dev/null
-grep -F "<!-- lazy-mem:end -->" "$tmpdir/fresh-project/AGENTS.md" >/dev/null
+if [ ! -f "$fresh_project_status_current" ]; then
+  echo "attach did not create fresh project current status file" >&2
+  exit 1
+fi
+
+grep -F "<!-- lazy-mem:start -->" "$tmpdir/API: Gateway/AGENTS.md" >/dev/null
+grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/API: Gateway/AGENTS.md" >/dev/null
+grep -F "<!-- lazy-mem:end -->" "$tmpdir/API: Gateway/AGENTS.md" >/dev/null
+grep -F "title: 'API: Gateway Current Status'" "$fresh_project_status_current" >/dev/null
 
 echo "lazy-mem smoke test passed"

@@ -11,10 +11,12 @@ fi
 tmpdir="$(mktemp -d)"
 probe_id="lazy-mem-autoload-probe-$(date +%s)-$$"
 created_project_page="$ROOT/projects/$probe_id.md"
+created_project_dir="$ROOT/projects/$probe_id"
 
 cleanup() {
   rm -rf "$tmpdir"
   rm -f "$created_project_page"
+  rm -rf "$created_project_dir"
 }
 
 trap cleanup EXIT
