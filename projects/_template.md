@@ -12,31 +12,43 @@ links_to: []
 
 # Example Project
 
-## What This Is
+Project memory hub for `example`.
 
-Short project description.
-
-## Current Shape
+## Summary
 
 - Main repo path:
-- Main goal:
 - Current status:
+- Use this hub as the first layer. Keep it brief, then link to deeper files.
 
-## Key Commands
+## Open First
 
-```bash
-# Add project-specific commands here.
-```
+| Need | Open | Why |
+| --- | --- | --- |
+| Current focus or latest state | [Current Status](example/status/current.md) | Active work and immediate context |
+| Durable decisions | [Decisions](example/decisions/README.md) | Product and technical choices |
+| Feature context | [Features](example/features/README.md) | Work grouped by capability |
+| Specs or design docs | [Specs](example/specs/README.md) | Deeper design context |
+
+## Context Index
+
+| Area | Files | Notes |
+| --- | --- | --- |
+| Status | [Current Status](example/status/current.md) | Keep this current when active work changes. |
+| Decisions | [Decisions](example/decisions/README.md) | Add one linked note per durable decision when needed. |
+| Features | [Features](example/features/README.md) | Add one linked note per feature or product surface. |
+| Specs | [Specs](example/specs/README.md) | Add deeper design notes only when the hub is too small. |
 
 ## Durable Decisions
 
 - Record durable decisions here.
 
-## Known Gotchas
+## Project Notes
 
-- Record pitfalls here.
+- Add short notes here only when they help routing.
+- Move longer context into a linked file under this project folder.
+- When creating a deeper file, link it here or in the nearest section index.
 
 ## Relevant Procedures
 
-- [[Code Recall]]
-- [[Project Handoff]]
+- [Code Recall](../procedures/code-recall.md)
+- [Project Handoff](../procedures/project-handoff.md)

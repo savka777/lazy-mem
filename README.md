@@ -16,6 +16,7 @@ project/.lazy-mem
   -> SYSTEM.md
   -> ROUTERS.md
   -> projects/<project>.md
+  -> projects/<project>/status / decisions / features / specs
   -> traces / proposals
 ```
 
@@ -65,6 +66,11 @@ That creates:
 ```text
 .lazy-mem
 AGENTS.md
+shared-memory/projects/<project>.md
+shared-memory/projects/<project>/status/current.md
+shared-memory/projects/<project>/decisions/README.md
+shared-memory/projects/<project>/features/README.md
+shared-memory/projects/<project>/specs/README.md
 ```
 
 `.lazy-mem` points back to the shared memory repo.
@@ -76,7 +82,7 @@ AGENTS.md
 Lazy Mem is markdown organized around work:
 
 ```text
-projects/      project memory
+projects/      project hubs and layered project context
 people/        user preferences and durable context
 procedures/    repeatable agent workflows
 state/         current focus and active work
@@ -87,6 +93,8 @@ lazy-cache/    future generated indexes and helper files
 ```
 
 `.lazy-mem` is always the project pointer file.
+
+Each project starts with a hub at `projects/<project>.md`. The hub gives a short summary and links to narrower project layers: current status, decisions, features, and specs. Agents should read the hub first, then open only the smallest useful linked file.
 
 `lazy-cache/` is reserved for generated support data later.
 

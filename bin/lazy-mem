@@ -62,28 +62,107 @@ write_pointer() {
     "$MEMORY_REPO/templates/project-pointer.yaml" >"$pointer_file"
 }
 
-write_project_page() {
-  page_file=$1
-  project_id=$2
-  project_title=$3
-  project_path=$4
-  today=$(date +%F)
+write_project_template() {
+  template_file=$1
+  output_file=$2
+  project_id=$3
+  project_title=$4
+  project_path=$5
+  today=$6
   project_id_value=$(sed_escape_replacement "$project_id")
   project_id_yaml=$(sed_escape_replacement "$(yaml_quote "$project_id")")
   project_title_value=$(sed_escape_replacement "$project_title")
   project_title_yaml=$(sed_escape_replacement "$(yaml_quote "$project_title")")
+  project_status_title_yaml=$(sed_escape_replacement "$(yaml_quote "$project_title Current Status")")
+  project_decisions_title_yaml=$(sed_escape_replacement "$(yaml_quote "$project_title Decisions")")
+  project_features_title_yaml=$(sed_escape_replacement "$(yaml_quote "$project_title Features")")
+  project_specs_title_yaml=$(sed_escape_replacement "$(yaml_quote "$project_title Specs")")
   project_path_value=$(sed_escape_replacement "$project_path")
   today_yaml=$(sed_escape_replacement "$(yaml_quote "$today")")
 
   sed \
     -e "s|__PROJECT_ID_YAML__|$project_id_yaml|g" \
     -e "s|__PROJECT_TITLE_YAML__|$project_title_yaml|g" \
+    -e "s|__PROJECT_STATUS_TITLE_YAML__|$project_status_title_yaml|g" \
+    -e "s|__PROJECT_DECISIONS_TITLE_YAML__|$project_decisions_title_yaml|g" \
+    -e "s|__PROJECT_FEATURES_TITLE_YAML__|$project_features_title_yaml|g" \
+    -e "s|__PROJECT_SPECS_TITLE_YAML__|$project_specs_title_yaml|g" \
     -e "s|__DATE_YAML__|$today_yaml|g" \
     -e "s|__PROJECT_ID__|$project_id_value|g" \
     -e "s|__PROJECT_TITLE__|$project_title_value|g" \
     -e "s|__PROJECT_PATH__|$project_path_value|g" \
     -e "s|__DATE__|$today|g" \
-    "$MEMORY_REPO/templates/project.md" >"$page_file"
+    "$template_file" >"$output_file"
+}
+
+write_project_page() {
+  page_file=$1
+  project_id=$2
+  project_title=$3
+  project_path=$4
+  today=$(date +%F)
+
+  write_project_template \
+    "$MEMORY_REPO/templates/project.md" \
+    "$page_file" \
+    "$project_id" \
+    "$project_title" \
+    "$project_path" \
+    "$today"
+}
+
+write_project_scaffold_file() {
+  template_file=$1
+  output_file=$2
+  project_id=$3
+  project_title=$4
+  project_path=$5
+  today=$6
+
+  if [ ! -f "$output_file" ]; then
+    mkdir -p "$(dirname "$output_file")"
+    write_project_template "$template_file" "$output_file" "$project_id" "$project_title" "$project_path" "$today"
+  fi
+}
+
+ensure_project_scaffold() {
+  project_id=$1
+  project_title=$2
+  project_path=$3
+  today=$(date +%F)
+  project_dir="$MEMORY_REPO/projects/$project_id"
+
+  write_project_scaffold_file \
+    "$MEMORY_REPO/templates/project-status-current.md" \
+    "$project_dir/status/current.md" \
+    "$project_id" \
+    "$project_title" \
+    "$project_path" \
+    "$today"
+
+  write_project_scaffold_file \
+    "$MEMORY_REPO/templates/project-decisions-readme.md" \
+    "$project_dir/decisions/README.md" \
+    "$project_id" \
+    "$project_title" \
+    "$project_path" \
+    "$today"
+
+  write_project_scaffold_file \
+    "$MEMORY_REPO/templates/project-features-readme.md" \
+    "$project_dir/features/README.md" \
+    "$project_id" \
+    "$project_title" \
+    "$project_path" \
+    "$today"
+
+  write_project_scaffold_file \
+    "$MEMORY_REPO/templates/project-specs-readme.md" \
+    "$project_dir/specs/README.md" \
+    "$project_id" \
+    "$project_title" \
+    "$project_path" \
+    "$today"
 }
 
 write_agents_md() {
@@ -175,6 +254,7 @@ attach() {
   if [ ! -f "$project_page" ]; then
     write_project_page "$project_page" "$project_id" "$project_title" "$project_abs"
   fi
+  ensure_project_scaffold "$project_id" "$project_title" "$project_abs"
 
   echo "Attached Lazy Mem"
   echo "Project id: $project_id"
@@ -182,8 +262,8 @@ attach() {
   echo "Agents: $agents_file"
   echo "System: $MEMORY_REPO/SYSTEM.md"
   echo
-  echo "Next: start an agent in this project and say: hello"
-  echo "Expected: compatible agents read AGENTS.md, then .lazy-mem, then $MEMORY_REPO/SYSTEM.md."
+  echo "Ready: start your agent from this project root."
+  echo "Compatible agents will read AGENTS.md, follow .lazy-mem, and load $MEMORY_REPO/SYSTEM.md."
 }
 
 case "${1:-help}" in

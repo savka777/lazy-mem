@@ -11,6 +11,10 @@ tags:
   - markdown
   - graph
 links_to:
+  - project.lazy-mem.status.current
+  - project.lazy-mem.decisions
+  - project.lazy-mem.features
+  - project.lazy-mem.specs
   - procedure.code-recall
   - procedure.project-handoff
   - state.current-focus
@@ -18,32 +22,47 @@ links_to:
 
 # Lazy Mem
 
-Lazy Mem is a central markdown memory repo for agent harnesses.
+Project memory hub for `lazy-mem`.
 
-## Current Shape
+## Summary
 
 - Central repo path: `/Users/sav/Desktop/Projects/lazy-mem`
 - Core system: markdown + pointers + inferred graph
 - Project attachment: `.lazy-mem` pointer files
-- First helper command: `bin/lazy-mem attach`
+- Current status: V0 scaffold with attach flow, AGENTS bootstrap, and layered project memory
 
-## V0 Goal
+## Open First
 
-Build a scaffold that lets any agent harness:
+| Need | Open | Why |
+| --- | --- | --- |
+| Current focus or latest state | [Current Status](lazy-mem/status/current.md) | Active work and next steps |
+| Durable decisions | [Decisions](lazy-mem/decisions/README.md) | Choices that shape the product |
+| Feature context | [Features](lazy-mem/features/README.md) | Work grouped by product surface |
+| Specs or design docs | [Specs](lazy-mem/specs/README.md) | Deeper design context |
 
-1. discover `.lazy-mem`
-2. load central `SYSTEM.md`
-3. route to project memory
-4. avoid preloading the whole repo
-5. write traces and proposals
+## Context Index
+
+| Area | Files | Notes |
+| --- | --- | --- |
+| Status | [Current Status](lazy-mem/status/current.md) | Active Lazy Mem work and recent progress. |
+| Decisions | [Decisions](lazy-mem/decisions/README.md) | Central repo, markdown-first, and harness behavior decisions. |
+| Features | [Features](lazy-mem/features/README.md) | Attach flow, autoload, memory explorer, and project layers. |
+| Specs | [Specs](lazy-mem/specs/README.md) | Design notes for larger product chunks. |
 
 ## Durable Decisions
 
 - Lazy Mem is central, not copied into each project.
 - V0 does not need a server, database, Obsidian plugin, or native harness integration.
 - The first product surface is the harness contract plus pointer file.
+- Project memory should be layered: project hub first, then narrow linked files.
+
+## Project Notes
+
+- Keep this hub short and link-heavy.
+- Move feature, decision, and spec detail into `projects/lazy-mem/`.
+- When adding a deeper file, update the nearest section index.
 
 ## Relevant Procedures
 
-- [[Code Recall]]
-- [[Project Handoff]]
+- [Code Recall](../procedures/code-recall.md)
+- [Project Handoff](../procedures/project-handoff.md)
