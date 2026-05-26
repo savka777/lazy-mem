@@ -2,7 +2,17 @@
 
 ## Durable Memory
 
-Do not directly edit durable memory by default.
+Memory should grow over time.
+
+Agents may directly update durable memory when the update is clear, useful, low-risk, and easy to inspect in git.
+
+Good direct writes include:
+
+- project status, next steps, and blockers
+- source-backed project facts
+- user-confirmed product direction
+- generated maps, indexes, traces, and run summaries
+- short links from a hub or index to deeper notes
 
 Durable memory includes:
 
@@ -11,12 +21,16 @@ Durable memory includes:
 - `procedures/`
 - committed source summaries
 
-Use proposals for meaningful changes.
+Use proposals when the change is uncertain, conflicting, broad, destructive, or explicitly requested for review.
+
+Do not use proposals as the default path for every useful memory update.
+Do not let pending proposals become a permanent backlog.
+Apply, fold, or archive proposals when their status becomes clear.
 
 ## Temporary State
 
 State files are working memory, not durable truth.
-Do not promote state into durable memory without a proposal or explicit user request.
+Promote state into durable memory only when it becomes useful, source-backed, or user-confirmed.
 
 ## Sources
 
@@ -26,7 +40,7 @@ Use `sources/` for references, imports, and evidence.
 ## Secrets
 
 Never store API keys, passwords, private tokens, or credentials in Lazy Mem.
-Reject memory proposals that contain secrets.
+Reject memory updates that contain secrets.
 
 ## Authority
 

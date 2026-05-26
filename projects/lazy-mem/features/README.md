@@ -29,4 +29,5 @@ Back to [Lazy Mem](../../lazy-mem.md).
 | Attach flow | working | [Current Status](../status/current.md) | Creates `.lazy-mem`, `AGENTS.md`, and project memory scaffold. |
 | Harness autoload | working | [Current Status](../status/current.md) | Rex test showed Lazy Mem loads on casual hello when AGENTS.md is present. |
 | Memory explorer | scaffolded | [Procedure](../../../procedures/memory-explorer.md) | Defines orchestrator and scout pattern for larger memory searches. |
-| Project layers | active | [Specs](../specs/README.md) | Adds project hub plus status, decisions, features, and specs indexes. |
+| Project layers | landed | [Specs](../specs/README.md) | Adds project hub plus status, decisions, features, and specs indexes. |
+| Memory growth policy | active | [Procedure](../../../procedures/memory-growth.md) | Lets useful memory accumulate directly when clear and low-risk. |

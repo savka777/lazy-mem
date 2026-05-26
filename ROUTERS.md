@@ -59,3 +59,10 @@ Read `procedures/memory-explorer.md` when:
 - answering would require reading too many files in the main context
 - subagents can scout project, trace, person, source, or procedure memory
 - the user asks for status, history, prior decisions, or cross-project context
+
+Read `procedures/memory-growth.md` when:
+
+- the agent learns useful context that should survive the session
+- updating memory would help the next agent avoid rediscovery
+- deciding whether to directly update memory or create a proposal
+- maintaining project status, indexes, maps, traces, or todo memory
