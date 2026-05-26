@@ -26,6 +26,15 @@ assert_contains() {
   fi
 }
 
+assert_not_contains() {
+  file="$1"
+  pattern="$2"
+  if grep -F -- "$pattern" "$ROOT/$file" >/dev/null 2>&1; then
+    echo "expected '$file' not to contain: $pattern" >&2
+    exit 1
+  fi
+}
+
 assert_executable() {
   if [ ! -x "$ROOT/$1" ]; then
     echo "expected executable: $1" >&2
@@ -50,6 +59,7 @@ assert_file "templates/project-status-current.md"
 assert_file "projects/_template.md"
 assert_file "projects/lazy-mem.md"
 assert_file "projects/lazy-mem/status/current.md"
+assert_file "projects/lazy-mem/status/todo.md"
 assert_file "projects/lazy-mem/decisions/README.md"
 assert_file "projects/lazy-mem/features/README.md"
 assert_file "projects/lazy-mem/specs/README.md"
@@ -57,17 +67,20 @@ assert_file "people/_template.md"
 assert_file "people/sav.md"
 assert_file "procedures/_template.md"
 assert_file "procedures/code-recall.md"
+assert_file "procedures/memory-growth.md"
 assert_file "procedures/memory-explorer.md"
 assert_file "procedures/project-handoff.md"
 assert_file "state/current-focus.md"
 assert_file "state/active-projects.md"
 assert_file "sources/README.md"
 assert_file "proposals/README.md"
+assert_file "proposals/archive/README.md"
 assert_file "logs/README.md"
 assert_file "benchmarks/README.md"
 assert_file "lazy-cache/README.md"
 
 assert_dir "proposals/pending"
+assert_dir "proposals/archive"
 assert_dir "logs/read-traces"
 assert_dir "logs/write-traces"
 assert_dir "logs/experiments"
@@ -78,15 +91,27 @@ assert_executable "tests/codex-agents-autoload.sh"
 assert_contains "SYSTEM.md" "If a project has a .lazy-mem pointer file, read it first."
 assert_contains "SYSTEM.md" "Do not preload the whole memory repo."
 assert_contains "SYSTEM.md" "Project memory is layered."
+assert_contains "SYSTEM.md" "Memory should grow over time."
 assert_contains "SYSTEM.md" 'If the task spans several memory areas, read `procedures/memory-explorer.md`.'
+assert_not_contains "SYSTEM.md" "Do not directly edit durable memory by default."
 assert_contains "ROUTERS.md" "Read projects/ before procedures/ when project_id is known."
 assert_contains "ROUTERS.md" "Use the project hub as the first layer."
+assert_contains "ROUTERS.md" 'Read `procedures/memory-growth.md` when:'
 assert_contains "ROUTERS.md" 'Read `procedures/memory-explorer.md` when:'
-assert_contains "RULES.md" "Do not directly edit durable memory by default."
+assert_contains "RULES.md" "Memory should grow over time."
+assert_contains "RULES.md" "Use proposals when the change is uncertain, conflicting, broad, destructive, or explicitly requested for review."
+assert_not_contains "RULES.md" "Do not directly edit durable memory by default."
+assert_contains "proposals/README.md" "Proposals are exceptional."
+assert_contains "proposals/README.md" "Do not let proposals become a permanent backlog."
+assert_not_contains "proposals/README.md" "Agents should create proposals instead of directly editing durable memory"
 assert_contains "lazy-mem.yaml" "schema_version: 0.1.0"
 assert_contains "lazy-mem.yaml" "cache: lazy-cache"
+assert_contains "lazy-mem.yaml" "durable_memory_default: direct_when_clear"
+assert_contains "lazy-mem.yaml" "pending_proposals_are_backlog: false"
 assert_contains "procedures/memory-explorer.md" "task: {}"
 assert_contains "procedures/memory-explorer.md" "- none by default"
+assert_contains "procedures/memory-growth.md" "Default to useful memory growth."
+assert_contains "procedures/memory-growth.md" "Pending proposals are not a backlog."
 
 tmpdir="$(mktemp -d)"
 project_id="smoke-project-$$"

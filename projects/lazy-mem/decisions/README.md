@@ -31,3 +31,4 @@ Back to [Lazy Mem](../../lazy-mem.md).
 | `.lazy-mem` pointer | 2026-05-17 | accepted | The project pointer file is reserved for attaching projects to memory. |
 | `AGENTS.md` bootstrap | 2026-05-25 | accepted | Compatible harnesses should load Lazy Mem from project start. |
 | Layered project memory | 2026-05-25 | accepted | Project hub first, then narrow linked files for status, decisions, features, and specs. |
+| Memory grows by default | 2026-05-26 | accepted | Directly update clear, useful, low-risk memory; proposals are not the default path. |

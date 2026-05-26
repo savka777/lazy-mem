@@ -44,9 +44,19 @@ When subagents are unavailable, follow the same traversal procedure inline.
 
 ## Write Policy
 
-Do not directly edit durable memory by default.
+Memory should grow over time.
 
-For meaningful memory updates, create a proposal under `proposals/pending/` that includes:
+When clear, useful, low-risk context appears, update the nearest relevant memory file directly. Prefer small edits to project hubs, project status files, feature indexes, decision indexes, logs, traces, or generated maps.
+
+Good direct updates include:
+
+- current project status, next steps, or blockers
+- source-backed project facts discovered while working
+- user-confirmed product direction
+- generated route maps, indexes, traces, and run summaries
+- brief links from a hub or index to a deeper note
+
+Use proposals when the change is uncertain, conflicting, broad, destructive, or explicitly requested for review. A proposal under `proposals/pending/` should include:
 
 - affected files
 - reason for the change
@@ -54,7 +64,11 @@ For meaningful memory updates, create a proposal under `proposals/pending/` that
 - confidence
 - exact replacement or append text
 
-Direct edits are allowed only for append-only logs, low-risk traces, or when the user explicitly asks for direct memory updates.
+Pending proposals are not a backlog. When proposals become clear, apply or fold them into direct memory updates. When they are stale, duplicate, rejected, or obsolete, move them to `proposals/archive/`.
+
+Do not let proposal overhead prevent useful memory from accumulating. If a direct update is made, keep it concise, dated when relevant, and easy to inspect in git.
+
+For more guidance, read `procedures/memory-growth.md`.
 
 ## Read Path Explanation
 
