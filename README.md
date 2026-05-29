@@ -6,7 +6,7 @@
 
 Lazy Mem is an under-engineered memory system for agents.
 
-It gives each project a tiny `.lazy-mem` pointer file. That pointer leads compatible agents to shared markdown memory: project notes, system rules, routing hints, procedures, read traces, and proposed updates.
+It gives each project a tiny `.lazy-mem` pointer file. That pointer leads compatible agents to shared markdown memory: project notes, system rules, routing hints, procedures, traces, and useful updates.
 
 The point is simple: every agent run should leave behind context the next one can use.
 
@@ -45,7 +45,7 @@ Lazy Mem starts from a small contract:
 3. `SYSTEM.md` explains how to use it.
 4. `ROUTERS.md` tells the agent where to look.
 5. The agent reads the smallest useful set of files.
-6. The agent leaves traces or proposes memory updates when it matters.
+6. The agent leaves traces or updates memory when it matters.
 
 No database.
 No daemon.
@@ -88,7 +88,7 @@ procedures/    repeatable agent workflows
 state/         current focus and active work
 sources/       evidence and references
 logs/          read/write traces
-proposals/     suggested memory updates
+proposals/     exceptional updates that need review
 lazy-cache/    future generated indexes and helper files
 ```
 
@@ -107,30 +107,33 @@ Agents should:
 3. Follow `ROUTERS.md`.
 4. Read the smallest useful set of memory files.
 5. Stop when there is enough context.
-6. Leave a read trace or propose a memory update when it actually matters.
+6. Leave a trace or update memory when it actually matters.
 
 This makes memory visible instead of magical.
 
 If an agent says it remembered something, you should be able to see what it read, why it trusted it, and what it changed.
 
-## important framing
+## portable by default
 
-Do not describe Lazy Mem as only local memory.
+Lazy Mem is local-first, not local-only.
 
-Lazy Mem is file-native and git-backed. It can be local, private, synced, shared through git, moved between machines, or used as a team/project memory repo.
+The memory is just files in a git repo. Keep it private on one machine, sync it across laptops, share it with a team, or point different harnesses at the same repo.
 
-The mission is portable agent memory: context that survives chat sessions, harness swaps, model swaps, and machine changes.
-
-Local-first is fine.
-Local-only is wrong.
+The important part is ownership: project context lives outside any one chat, model, tool, or machine.
 
 ## status
 
-V0 scaffold.
+Lazy Mem is in v0.
 
-Lazy Mem can attach projects, create pointer files, add an `AGENTS.md` bootstrap, and provide the first memory structure.
+Today it can:
 
-The next proof is the real one:
+- attach a project with a `.lazy-mem` pointer
+- add an `AGENTS.md` bootstrap for compatible harnesses
+- create a project hub with status, decisions, features, and specs
+- give agents a small routing contract
+- let memory grow through direct, inspectable file updates
+
+The next proof:
 
 ```text
 same memory
@@ -138,4 +141,4 @@ different agents
 less re-explaining
 ```
 
-That is the product.
+That is the bar.
