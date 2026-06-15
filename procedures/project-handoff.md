@@ -25,7 +25,8 @@ links_to:
 2. Identify current goal, completed work, open decisions, and next step.
 3. Include exact file paths and commands when useful.
 4. Separate durable facts from temporary state.
-5. Propose memory updates instead of silently editing durable pages.
+5. Write small durable updates directly when they are clear, useful, factual, and low-risk.
+6. If an update is unsafe, ask, skip, or record only the safe blocker.
 
 ## Output
 

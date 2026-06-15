@@ -39,4 +39,4 @@ Report:
 - files read
 - why they were read
 - answer or action taken
-- missing memory that should be proposed
+- missing memory that should be written directly if it is safe

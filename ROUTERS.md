@@ -64,5 +64,5 @@ Read `procedures/memory-growth.md` when:
 
 - the agent learns useful context that should survive the session
 - updating memory would help the next agent avoid rediscovery
-- deciding whether to directly update memory or create a proposal
+- deciding whether a direct memory update is safe
 - maintaining project status, indexes, maps, traces, or todo memory

@@ -100,8 +100,8 @@ run_with_timeout 120 codex exec \
   2>"$tmpdir/lazy-mem.err"
 
 assert_contains_file ".lazy-mem" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
-assert_contains_file "$ROOT/SYSTEM.md" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
-assert_contains_file "ROUTERS.md" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
+assert_contains_file "Universal Harness Contract" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
+assert_contains_file "Standard Route" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
 assert_contains_file "projects/$probe_id.md" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
 assert_contains_file "LAZY_MEM_RUNTIME_PROBE_DONE" "$tmpdir/lazy-mem-events.jsonl" "$tmpdir/lazy-mem.err"
 

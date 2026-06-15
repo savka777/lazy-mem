@@ -21,11 +21,8 @@ Durable memory includes:
 - `procedures/`
 - committed source summaries
 
-Use proposals when the change is uncertain, conflicting, broad, destructive, or explicitly requested for review.
-
-Do not use proposals as the default path for every useful memory update.
-Do not let pending proposals become a permanent backlog.
-Apply, fold, or archive proposals when their status becomes clear.
+If a memory update is uncertain, conflicting, broad, destructive, secret-bearing, or speculative, do not write it.
+Ask the user, skip the update, or record only the safe factual blocker in the nearest relevant status file.
 
 ## Temporary State
 
