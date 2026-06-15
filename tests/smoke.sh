@@ -248,11 +248,32 @@ if grep -F "say: hello" "$attach_output" >/dev/null; then
 fi
 
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
-agents_block_count=$(grep -c "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" || true)
-if [ "$agents_block_count" -ne 1 ]; then
-  echo "attach duplicated Lazy Mem AGENTS.md block" >&2
+for adapter_file in AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  block_count=$(grep -c "<!-- lazy-mem:start -->" "$tmpdir/example-project/$adapter_file" || true)
+  if [ "$block_count" -ne 1 ]; then
+    echo "attach duplicated Lazy Mem block in $adapter_file" >&2
+    exit 1
+  fi
+done
+printf '# Existing Instructions\n\n<!-- lazy-mem:start -->\nold block\n<!-- lazy-mem:end -->\n' >"$tmpdir/example-project/CLAUDE.md"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+grep -F "# Existing Instructions" "$tmpdir/example-project/CLAUDE.md" >/dev/null
+if grep -F "old block" "$tmpdir/example-project/CLAUDE.md" >/dev/null; then
+  echo "attach did not refresh existing Lazy Mem block in CLAUDE.md" >&2
   exit 1
 fi
+grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/CLAUDE.md" >/dev/null
+malformed_before="$tmpdir/malformed-before.txt"
+printf '# Existing Instructions\n\n<!-- lazy-mem:start -->\nmissing end\n' >"$tmpdir/example-project/GEMINI.md"
+cp "$tmpdir/example-project/GEMINI.md" "$malformed_before"
+if "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >"$tmpdir/malformed.out" 2>"$tmpdir/malformed.err"; then
+  echo "attach should fail on malformed Lazy Mem markers" >&2
+  exit 1
+fi
+grep -F "malformed Lazy Mem block" "$tmpdir/malformed.err" >/dev/null
+cmp "$malformed_before" "$tmpdir/example-project/GEMINI.md" >/dev/null
+rm -f "$tmpdir/example-project/GEMINI.md"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 printf 'SENTINEL existing feature index\n' >"$project_features_index"
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 grep -F "SENTINEL existing feature index" "$project_features_index" >/dev/null
