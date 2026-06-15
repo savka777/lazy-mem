@@ -50,6 +50,7 @@ assert_file "lazy-mem.yaml"
 assert_file "bin/lazy-mem"
 assert_file "tests/codex-agents-autoload.sh"
 assert_file "templates/AGENTS.md"
+assert_file "templates/adapter.md"
 assert_file "templates/project-pointer.yaml"
 assert_file "templates/project.md"
 assert_file "templates/project-decisions-readme.md"
@@ -195,6 +196,13 @@ if [ ! -f "$tmpdir/example-project/AGENTS.md" ]; then
   exit 1
 fi
 
+for adapter_file in AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  if [ ! -f "$tmpdir/example-project/$adapter_file" ]; then
+    echo "attach did not create $adapter_file" >&2
+    exit 1
+  fi
+done
+
 grep -F "memory_repo: $ROOT" "$tmpdir/example-project/.lazy-mem" >/dev/null
 grep -F "project_id: $project_id" "$tmpdir/example-project/.lazy-mem" >/dev/null
 grep -F "system_file: SYSTEM.md" "$tmpdir/example-project/.lazy-mem" >/dev/null
@@ -203,6 +211,11 @@ grep -F "Keep this line." "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:start -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:end -->" "$tmpdir/example-project/AGENTS.md" >/dev/null
+for adapter_file in AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  grep -F "<!-- lazy-mem:start -->" "$tmpdir/example-project/$adapter_file" >/dev/null
+  grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/$adapter_file" >/dev/null
+  grep -F "<!-- lazy-mem:end -->" "$tmpdir/example-project/$adapter_file" >/dev/null
+done
 grep -F "id: project.$project_id" "$project_page" >/dev/null
 grep -F "Project memory hub for \`$project_id\`." "$project_page" >/dev/null
 grep -F "## Open First" "$project_page" >/dev/null
@@ -223,7 +236,12 @@ if grep -F "Project memory layers" "$project_specs_index" >/dev/null; then
   exit 1
 fi
 grep -F "Ready: start your agent from this project root." "$attach_output" >/dev/null
-grep -F "Compatible agents will read AGENTS.md, follow .lazy-mem, and load $ROOT/SYSTEM.md." "$attach_output" >/dev/null
+grep -F "Adapters:" "$attach_output" >/dev/null
+grep -F "$tmpdir/example-project/AGENTS.md" "$attach_output" >/dev/null
+grep -F "$tmpdir/example-project/CLAUDE.md" "$attach_output" >/dev/null
+grep -F "$tmpdir/example-project/GEMINI.md" "$attach_output" >/dev/null
+grep -F "$tmpdir/example-project/AGENT.md" "$attach_output" >/dev/null
+grep -F "Supported adapters will point compatible harnesses to .lazy-mem and Lazy Mem system instructions." "$attach_output" >/dev/null
 if grep -F "say: hello" "$attach_output" >/dev/null; then
   echo "attach output should not include smoke-test prompt copy" >&2
   exit 1
