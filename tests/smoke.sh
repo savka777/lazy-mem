@@ -42,6 +42,26 @@ assert_executable() {
   fi
 }
 
+assert_malformed_adapter_fails() {
+  adapter_file=$1
+  label=$2
+  content=$3
+  malformed_before="$tmpdir/$label-before.txt"
+  malformed_out="$tmpdir/$label.out"
+  malformed_err="$tmpdir/$label.err"
+
+  printf '%b' "$content" >"$tmpdir/example-project/$adapter_file"
+  cp "$tmpdir/example-project/$adapter_file" "$malformed_before"
+  if "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >"$malformed_out" 2>"$malformed_err"; then
+    echo "attach should fail on malformed Lazy Mem markers: $label" >&2
+    exit 1
+  fi
+  grep -F "malformed Lazy Mem block" "$malformed_err" >/dev/null
+  cmp "$malformed_before" "$tmpdir/example-project/$adapter_file" >/dev/null
+  rm -f "$tmpdir/example-project/$adapter_file"
+  "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+}
+
 assert_file "README.md"
 assert_file "SYSTEM.md"
 assert_file "RULES.md"
@@ -88,6 +108,8 @@ assert_dir "logs/experiments"
 
 assert_executable "bin/lazy-mem"
 assert_executable "tests/codex-agents-autoload.sh"
+
+cmp "$ROOT/templates/adapter.md" "$ROOT/templates/AGENTS.md" >/dev/null
 
 assert_contains "README.md" "harness startup adapters"
 assert_contains "README.md" "AGENTS.md"
@@ -270,17 +292,13 @@ if grep -F "old block" "$tmpdir/example-project/CLAUDE.md" >/dev/null; then
   exit 1
 fi
 grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/example-project/CLAUDE.md" >/dev/null
-malformed_before="$tmpdir/malformed-before.txt"
-printf '# Existing Instructions\n\n<!-- lazy-mem:start -->\nmissing end\n' >"$tmpdir/example-project/GEMINI.md"
-cp "$tmpdir/example-project/GEMINI.md" "$malformed_before"
-if "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >"$tmpdir/malformed.out" 2>"$tmpdir/malformed.err"; then
-  echo "attach should fail on malformed Lazy Mem markers" >&2
-  exit 1
-fi
-grep -F "malformed Lazy Mem block" "$tmpdir/malformed.err" >/dev/null
-cmp "$malformed_before" "$tmpdir/example-project/GEMINI.md" >/dev/null
-rm -f "$tmpdir/example-project/GEMINI.md"
-"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+assert_malformed_adapter_fails "GEMINI.md" "missing-end" '# Existing Instructions\n\n<!-- lazy-mem:start -->\nmissing end\n'
+assert_malformed_adapter_fails "GEMINI.md" "end-without-start" '# Existing Instructions\n\n<!-- lazy-mem:end -->\nmissing start\n'
+assert_malformed_adapter_fails "GEMINI.md" "duplicate-start" '# Existing Instructions\n\n<!-- lazy-mem:start -->\nfirst\n<!-- lazy-mem:start -->\nsecond\n<!-- lazy-mem:end -->\n'
+assert_malformed_adapter_fails "GEMINI.md" "duplicate-end" '# Existing Instructions\n\n<!-- lazy-mem:start -->\nbody\n<!-- lazy-mem:end -->\n<!-- lazy-mem:end -->\n'
+assert_malformed_adapter_fails "GEMINI.md" "reversed-markers" '# Existing Instructions\n\n<!-- lazy-mem:end -->\nbody\n<!-- lazy-mem:start -->\n'
+assert_malformed_adapter_fails "GEMINI.md" "nested-markers" '# Existing Instructions\n\n<!-- lazy-mem:start -->\nouter\n<!-- lazy-mem:start -->\ninner\n<!-- lazy-mem:end -->\n<!-- lazy-mem:end -->\n'
+assert_malformed_adapter_fails "GEMINI.md" "same-line-markers" '# Existing Instructions\n\n<!-- lazy-mem:start --> inline <!-- lazy-mem:end -->\n'
 printf 'SENTINEL existing feature index\n' >"$project_features_index"
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 grep -F "SENTINEL existing feature index" "$project_features_index" >/dev/null
