@@ -66,6 +66,9 @@ That creates:
 ```text
 .lazy-mem
 AGENTS.md
+CLAUDE.md
+GEMINI.md
+AGENT.md
 shared-memory/projects/<project>.md
 shared-memory/projects/<project>/status/current.md
 shared-memory/projects/<project>/decisions/README.md
@@ -75,7 +78,7 @@ shared-memory/projects/<project>/specs/README.md
 
 `.lazy-mem` points back to the shared memory repo.
 
-`AGENTS.md` gives compatible harnesses a small bootstrap instruction: check for `.lazy-mem`, read the Lazy Mem system instructions, follow the routers, and load only the memory needed for the task.
+The harness startup adapters give compatible tools a small bootstrap instruction: check for `.lazy-mem`, read the Lazy Mem system instructions, follow the routers, and load only the memory needed for the task.
 
 ## what it stores
 
@@ -128,10 +131,12 @@ Lazy Mem is in v0.
 Today it can:
 
 - attach a project with a `.lazy-mem` pointer
-- add an `AGENTS.md` bootstrap for compatible harnesses
+- add harness startup adapters: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and `AGENT.md`
 - create a project hub with status, decisions, features, and specs
 - give agents a small routing contract
 - let memory grow through direct, inspectable file updates
+
+Adapter generation is tracked separately from runtime proof. Codex runtime-probed through `AGENTS.md`. `CLAUDE.md`, `GEMINI.md`, and `AGENT.md` are generated for harnesses that document those startup files. Generated adapters are not the same as runtime proof for every harness.
 
 The next proof:
 
