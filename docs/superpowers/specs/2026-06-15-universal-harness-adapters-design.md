@@ -52,18 +52,23 @@ Do not preload the whole memory repo.
 
 The block stays intentionally generic. Harness-specific files differ by filename, not by behavior. The canonical contract remains in `SYSTEM.md`; adapter files only bootstrap the first read.
 
-## Adapter Scope
+## Adapter Support Matrix
 
 Initial generated adapters:
 
-| File | Harness family | Confidence |
-| --- | --- | --- |
-| `AGENTS.md` | Codex and AGENTS-compatible tools | Runtime-probed locally for Codex. |
-| `CLAUDE.md` | Claude Code | Supported by upstream docs; runtime probe can be added separately. |
-| `GEMINI.md` | Gemini CLI / Gemini Code Assist style context | Supported by upstream docs; runtime probe can be added separately. |
-| `AGENT.md` | Gemini Code Assist documented alternate context file | Supported by upstream docs; runtime probe can be added separately. |
+Last checked: 2026-06-15.
+
+| File | Harness/product | Documented load behavior | Source | Runtime-probed status | Allowed README wording |
+| --- | --- | --- | --- | --- | --- |
+| `AGENTS.md` | Codex | Codex reads `AGENTS.md` before doing work. | https://developers.openai.com/codex/guides/agents-md | Runtime-probed locally for Codex. | "Codex runtime-probed through `AGENTS.md`." |
+| `AGENTS.md` | Gemini in Android Studio | Gemini scans the current directory and parent directories for `AGENTS.md` files and adds them as prompt preamble. | https://developer.android.com/studio/gemini/agent-files | Adapter generated; not runtime-probed locally. | "Generated for Gemini products that document `AGENTS.md` support." |
+| `CLAUDE.md` | Claude Code | Claude reads project `CLAUDE.md` at the start of each session. | https://docs.anthropic.com/en/docs/claude-code/memory | Adapter generated; not runtime-probed locally. | "Generated for Claude Code's documented project memory file." |
+| `GEMINI.md` | Gemini Code Assist / Gemini CLI-style context | Gemini Code Assist documents `GEMINI.md` as a project context file. | https://docs.cloud.google.com/gemini/docs/codeassist/use-agentic-chat-pair-programmer | Adapter generated; not runtime-probed locally. | "Generated for Gemini products that document `GEMINI.md` context files." |
+| `AGENT.md` | Gemini Code Assist IntelliJ alternate | Gemini Code Assist documents `AGENT.md` as an alternate project-root context file for IntelliJ. | https://docs.cloud.google.com/gemini/docs/codeassist/use-agentic-chat-pair-programmer | Adapter generated; not runtime-probed locally. | "Generated for Gemini Code Assist contexts that document `AGENT.md`." |
 
 This is not a claim that every possible harness has been runtime-probed. It makes attach produce the startup files that known harnesses already look for and creates a clean path to add more adapters.
+
+Writing multiple adapters can duplicate Lazy Mem startup context for tools that read more than one of these filenames. That is acceptable for v0 because each file contains the same small bootstrap block and the canonical routing still lives in `SYSTEM.md`.
 
 ## CLI Behavior
 
@@ -75,7 +80,22 @@ lazy-mem attach [project_path] [--id project-id]
 
 For now, attach writes all first-class adapters by default. There is no `--harness` flag in this slice. A registry flag would be useful later, but it adds configuration surface before the default product behavior is solid.
 
-The attach output should list all adapter files it wrote or updated so users can inspect them.
+The attach output should list all adapter files it wrote or updated so users can inspect them. Minimum output shape:
+
+```text
+Attached Lazy Mem
+Project id: <project-id>
+Pointer: <absolute-project-path>/.lazy-mem
+Adapters:
+  - <absolute-project-path>/AGENTS.md
+  - <absolute-project-path>/CLAUDE.md
+  - <absolute-project-path>/GEMINI.md
+  - <absolute-project-path>/AGENT.md
+System: <absolute-memory-repo>/SYSTEM.md
+
+Ready: start your agent from this project root.
+Supported adapters will point compatible harnesses to .lazy-mem and Lazy Mem system instructions.
+```
 
 ## File Update Rules
 
@@ -85,6 +105,7 @@ Adapter updates should preserve human-written content:
 - If the file exists and has no Lazy Mem block, append the block after existing content.
 - If the file exists and has one Lazy Mem block, replace only that block with the current template.
 - Re-running attach must not duplicate the block.
+- If the file has malformed markers, multiple start markers, multiple end markers, nested markers, or a start marker without a later end marker, fail with a clear error and leave the file unchanged.
 
 All adapter files use the same markers, so the update logic can be shared.
 
@@ -99,6 +120,7 @@ Static attach tests should verify:
 - Existing content in each adapter file is preserved.
 - Re-running attach does not duplicate the Lazy Mem block.
 - Existing Lazy Mem blocks are refreshed from the canonical template.
+- Malformed or repeated Lazy Mem markers fail with a clear error and leave the adapter unchanged.
 - Attach output lists all adapters.
 - Project memory scaffold behavior remains unchanged.
 
@@ -140,4 +162,3 @@ This design is complete when:
 - Tests cover creation, preservation, refresh, no duplication, and attach output.
 - Existing Codex autoload verification still passes.
 - README describes the adapter model without overstating unprobed harnesses.
-
