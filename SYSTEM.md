@@ -18,7 +18,7 @@ Do not preload the whole memory repo.
 5. Use `project_id` to find the matching `projects/<project_id>.md` page.
 6. Read only the project, procedure, person, state, or source files needed for the task.
 7. Stop reading when enough context exists.
-8. If the task meaningfully used Lazy Mem, write or propose a read trace under `logs/read-traces/`.
+8. If the task meaningfully used Lazy Mem, write a small read trace under `logs/read-traces/` when that trace will help a future session.
 
 ## Project Layers
 
@@ -56,17 +56,9 @@ Good direct updates include:
 - generated route maps, indexes, traces, and run summaries
 - brief links from a hub or index to a deeper note
 
-Use proposals when the change is uncertain, conflicting, broad, destructive, or explicitly requested for review. A proposal under `proposals/pending/` should include:
+If a memory update is uncertain, conflicting, broad, destructive, secret-bearing, or speculative, do not write it. Ask the user, skip the update, or record only the safe factual blocker in the nearest relevant status file.
 
-- affected files
-- reason for the change
-- source evidence
-- confidence
-- exact replacement or append text
-
-Pending proposals are not a backlog. When proposals become clear, apply or fold them into direct memory updates. When they are stale, duplicate, rejected, or obsolete, move them to `proposals/archive/`.
-
-Do not let proposal overhead prevent useful memory from accumulating. If a direct update is made, keep it concise, dated when relevant, and easy to inspect in git.
+Keep direct updates concise, dated when useful, and easy to inspect in git.
 
 For more guidance, read `procedures/memory-growth.md`.
 

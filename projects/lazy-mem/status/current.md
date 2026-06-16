@@ -4,7 +4,7 @@ type: project-status
 title: Lazy Mem Current Status
 project_id: lazy-mem
 authority: primary
-freshness: 2026-05-25
+freshness: 2026-06-15
 tags:
   - lazy-mem
   - status
@@ -23,12 +23,14 @@ Back to [Lazy Mem](../../lazy-mem.md).
 
 ## Current Focus
 
-- Project attach works through `.lazy-mem` and `AGENTS.md`.
+- Current goal: prove Lazy Mem continuity with cold-start agents using normal prompts, direct writes, and no deferred update queue.
+- Project attach works through `.lazy-mem` and first-class startup adapters.
+- Continuity E2E landed: writer cold-start stores a canary in project status, reader cold-start recovers it from "Where did we leave off?", and a control project does not leak the canary.
 - Casual session startup has been tested with Rex: compatible agents loaded Lazy Mem before replying.
 - Layered project memory has landed on main.
-- The current feature is memory growth policy: direct useful updates by default, proposals for uncertainty or heavier changes.
+- Memory growth policy is direct-write-only for the active product model: write when clear, useful, factual, low-risk, and small; ask, skip, or record only the safe blocker when unsafe.
 - The dev repo is self-attached locally so Lazy Mem is used while building Lazy Mem.
-- Live test base exists at `/Users/sav/Documents/lazy-mem`, cloned from merged `main` at `03f1430`.
+- Live test base exists at `/Users/sav/Documents/lazy-mem`.
 
 ## Active Threads
 
@@ -36,8 +38,9 @@ Back to [Lazy Mem](../../lazy-mem.md).
 | --- | --- | --- |
 | Attach onboarding | ready | [Features](../features/README.md) |
 | Project memory layers | landed | [Specs](../specs/README.md) |
-| Memory growth policy | active | [Memory Growth](../../../procedures/memory-growth.md) |
-| Repo indexing swarm | next | [Todo](todo.md) |
+| Memory growth policy | direct-write-only | [Memory Growth](../../../procedures/memory-growth.md) |
+| Continuity E2E | active proof | [Todo](todo.md) |
+| Repo indexing swarm | parked | [Todo](todo.md) |
 
 ## Next Useful Reads
 

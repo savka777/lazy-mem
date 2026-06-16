@@ -20,7 +20,6 @@ folders:
   procedures: procedures
   state: state
   sources: sources
-  proposals: proposals
   logs: logs
   benchmarks: benchmarks
   cache: lazy-cache
@@ -35,11 +34,10 @@ write_policy:
   durable_memory_default: direct_when_clear
   append_only_logs: direct
   generated_maps: direct
-  pending_proposals_are_backlog: false
-  proposal_archive: proposals/archive
-  proposals_for:
-    - uncertain_changes
-    - conflicting_changes
-    - broad_rewrites
-    - destructive_changes
-    - explicit_review_requests
+  unsafe_updates: ask_skip_or_record_safe_blocker
+  direct_update_requires:
+    - clear
+    - useful
+    - factual
+    - low_risk
+    - inspectable
