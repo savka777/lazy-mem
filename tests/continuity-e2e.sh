@@ -87,7 +87,7 @@ trap cleanup EXIT
 mkdir -p "$memory_repo" "$writer_project" "$reader_project" "$control_project"
 (
   cd "$ROOT"
-  git ls-files -z | while IFS= read -r -d '' file_path; do
+  git ls-files | while IFS= read -r file_path; do
     if [ -f "$file_path" ]; then
       mkdir -p "$memory_repo/$(dirname "$file_path")"
       cp "$file_path" "$memory_repo/$file_path"
@@ -113,6 +113,11 @@ Make a durable project update so a future fresh session can answer \"Where did w
   2>"$writer_err"
 
 assert_contains_file "WRITER_DONE" "$writer_events" "$writer_err"
+assert_contains_file ".lazy-mem" "$writer_events" "$writer_err"
+assert_contains_file "Universal Harness Contract" "$writer_events" "$writer_err"
+assert_contains_file "Standard Route" "$writer_events" "$writer_err"
+assert_contains_file "projects/$probe_id.md" "$writer_events" "$writer_err"
+assert_contains_file "status/current.md" "$writer_events" "$writer_err"
 assert_contains_file "$canary" "$memory_repo/projects/$probe_id/status/current.md"
 if grep -R "$canary" "$writer_project" >/dev/null 2>&1; then
   echo "writer project should not contain the continuity canary outside Lazy Mem" >&2

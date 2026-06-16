@@ -60,6 +60,88 @@ count_marker() {
   grep -F -c "$marker" "$file" 2>/dev/null || true
 }
 
+validate_adapter_file() {
+  adapter_file=$1
+
+  if [ ! -f "$adapter_file" ]; then
+    return 0
+  fi
+
+  start_count=$(count_marker "$START_MARKER" "$adapter_file")
+  end_count=$(count_marker "$END_MARKER" "$adapter_file")
+
+  if [ "$start_count" -eq 0 ] && [ "$end_count" -eq 0 ]; then
+    return 0
+  fi
+
+  if [ "$start_count" -eq 1 ] && [ "$end_count" -eq 1 ]; then
+    awk -v start="$START_MARKER" -v end="$END_MARKER" '
+      $0 == start {
+        in_lazy_mem_block = 1
+        seen_start = 1
+        next
+      }
+      in_lazy_mem_block && $0 == end {
+        in_lazy_mem_block = 0
+        seen_end = 1
+        next
+      }
+      END {
+        if (!seen_start || !seen_end || in_lazy_mem_block) {
+          exit 2
+        }
+      }
+    ' "$adapter_file" >/dev/null || die "malformed Lazy Mem block in $adapter_file"
+    return 0
+  fi
+
+  die "malformed Lazy Mem block in $adapter_file"
+}
+
+preflight_adapter_files() {
+  project_abs=$1
+
+  [ -f "$ADAPTER_TEMPLATE" ] || die "missing adapter template: $ADAPTER_TEMPLATE"
+
+  for adapter_name in $ADAPTER_FILES; do
+    validate_adapter_file "$project_abs/$adapter_name"
+  done
+}
+
+append_exclude_once() {
+  exclude_file=$1
+  pattern=$2
+
+  if ! grep -Fx "$pattern" "$exclude_file" >/dev/null 2>&1; then
+    printf '%s\n' "$pattern" >>"$exclude_file"
+  fi
+}
+
+ensure_local_git_excludes() {
+  project_abs=$1
+
+  command -v git >/dev/null 2>&1 || return 0
+  git -C "$project_abs" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+
+  git_dir=$(git -C "$project_abs" rev-parse --git-dir) || return 0
+  case "$git_dir" in
+    /*)
+      exclude_file="$git_dir/info/exclude"
+      ;;
+    *)
+      work_tree=$(git -C "$project_abs" rev-parse --show-toplevel) || return 0
+      exclude_file="$work_tree/$git_dir/info/exclude"
+      ;;
+  esac
+
+  mkdir -p "$(dirname "$exclude_file")"
+  touch "$exclude_file"
+  append_exclude_once "$exclude_file" ".lazy-mem"
+  for adapter_name in $ADAPTER_FILES; do
+    append_exclude_once "$exclude_file" "$adapter_name"
+  done
+}
+
 write_pointer() {
   pointer_file=$1
   project_id=$2
@@ -269,6 +351,8 @@ attach() {
   adapters_written=
   project_page="$MEMORY_REPO/projects/$project_id.md"
 
+  preflight_adapter_files "$project_abs"
+  ensure_local_git_excludes "$project_abs"
   write_pointer "$pointer_file" "$project_id"
   for adapter_name in $ADAPTER_FILES; do
     adapter_file="$project_abs/$adapter_name"

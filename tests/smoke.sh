@@ -62,6 +62,17 @@ assert_malformed_adapter_fails() {
   "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 }
 
+assert_file_unchanged() {
+  before_file=$1
+  after_file=$2
+  label=$3
+
+  if ! cmp "$before_file" "$after_file" >/dev/null; then
+    echo "failed attach changed $label" >&2
+    exit 1
+  fi
+}
+
 assert_file "README.md"
 assert_file "SYSTEM.md"
 assert_file "RULES.md"
@@ -148,6 +159,8 @@ assert_contains "procedures/memory-explorer.md" "- none by default"
 assert_contains "procedures/memory-growth.md" "Default to useful memory growth."
 assert_contains "procedures/memory-growth.md" "When an update is unsafe, ask, skip, or record only the safe blocker."
 assert_not_contains "procedures/memory-growth.md" "proposal"
+assert_not_contains "tests/continuity-e2e.sh" "read -r -d"
+assert_not_contains "tests/continuity-e2e.sh" "read -d"
 
 tmpdir="$(mktemp -d)"
 project_id="smoke-project-$$"
@@ -180,6 +193,12 @@ while [ -e "$fresh_project_page" ] || [ -e "$fresh_project_dir" ]; do
   fresh_project_dir="$ROOT/projects/$fresh_project_id"
   fresh_project_status_current="$fresh_project_dir/status/current.md"
 done
+git_project_id="$project_id-git"
+git_project_page="$ROOT/projects/$git_project_id.md"
+git_project_dir="$ROOT/projects/$git_project_id"
+atomic_project_id="$project_id-atomic"
+atomic_project_page="$ROOT/projects/$atomic_project_id.md"
+atomic_project_dir="$ROOT/projects/$atomic_project_id"
 
 cleanup() {
   rm -rf "$tmpdir"
@@ -187,6 +206,10 @@ cleanup() {
   rm -rf "$project_dir"
   rm -f "$fresh_project_page"
   rm -rf "$fresh_project_dir"
+  rm -f "$git_project_page"
+  rm -rf "$git_project_dir"
+  rm -f "$atomic_project_page"
+  rm -rf "$atomic_project_dir"
 }
 
 trap cleanup EXIT
@@ -290,6 +313,28 @@ for adapter_file in AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
     exit 1
   fi
 done
+
+mkdir -p "$tmpdir/atomic-before"
+for artifact_file in .lazy-mem AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  cp "$tmpdir/example-project/$artifact_file" "$tmpdir/atomic-before/$artifact_file"
+done
+printf '# Existing Instructions\n\n<!-- lazy-mem:start -->\nmissing end\n' >"$tmpdir/example-project/GEMINI.md"
+cp "$tmpdir/example-project/GEMINI.md" "$tmpdir/atomic-before/GEMINI.md"
+if "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$atomic_project_id" >"$tmpdir/atomic.out" 2>"$tmpdir/atomic.err"; then
+  echo "attach should fail before writing anything when any adapter is malformed" >&2
+  exit 1
+fi
+grep -F "malformed Lazy Mem block" "$tmpdir/atomic.err" >/dev/null
+for artifact_file in .lazy-mem AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  assert_file_unchanged "$tmpdir/atomic-before/$artifact_file" "$tmpdir/example-project/$artifact_file" "$artifact_file"
+done
+if [ -e "$atomic_project_page" ] || [ -e "$atomic_project_dir" ]; then
+  echo "failed attach created project memory for malformed adapter run" >&2
+  exit 1
+fi
+rm -f "$tmpdir/example-project/GEMINI.md"
+"$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
+
 printf '# Existing Instructions\n\n<!-- lazy-mem:start -->\nold block\n<!-- lazy-mem:end -->\n' >"$tmpdir/example-project/CLAUDE.md"
 "$ROOT/bin/lazy-mem" attach "$tmpdir/example-project" --id "$project_id" >/dev/null
 grep -F "# Existing Instructions" "$tmpdir/example-project/CLAUDE.md" >/dev/null
@@ -326,5 +371,28 @@ grep -F "<!-- lazy-mem:start -->" "$tmpdir/API: Gateway/AGENTS.md" >/dev/null
 grep -F "At the start of a session or task, before replying, check for \`.lazy-mem\` in this project." "$tmpdir/API: Gateway/AGENTS.md" >/dev/null
 grep -F "<!-- lazy-mem:end -->" "$tmpdir/API: Gateway/AGENTS.md" >/dev/null
 grep -F "title: 'API: Gateway Current Status'" "$fresh_project_status_current" >/dev/null
+
+git_project="$tmpdir/git-project"
+mkdir -p "$git_project"
+git -C "$git_project" init -q
+"$ROOT/bin/lazy-mem" attach "$git_project" --id "$git_project_id" >/dev/null
+exclude_file="$git_project/.git/info/exclude"
+for artifact_file in .lazy-mem AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  grep -Fx "$artifact_file" "$exclude_file" >/dev/null
+done
+git_status=$(git -C "$git_project" status --short -- .lazy-mem AGENTS.md CLAUDE.md GEMINI.md AGENT.md)
+if [ -n "$git_status" ]; then
+  echo "Lazy Mem artifacts should be locally excluded from git status" >&2
+  printf '%s\n' "$git_status" >&2
+  exit 1
+fi
+"$ROOT/bin/lazy-mem" attach "$git_project" --id "$git_project_id" >/dev/null
+for artifact_file in .lazy-mem AGENTS.md CLAUDE.md GEMINI.md AGENT.md; do
+  artifact_count=$(grep -Fx "$artifact_file" "$exclude_file" | wc -l | tr -d ' ')
+  if [ "$artifact_count" -ne 1 ]; then
+    echo "expected one local exclude entry for $artifact_file, found $artifact_count" >&2
+    exit 1
+  fi
+done
 
 echo "lazy-mem smoke test passed"
