@@ -153,13 +153,3 @@ Today it can:
 Lazy Mem does not keep a deferred update queue in the active product model. Agents write directly when an update is clear, useful, factual, low-risk, and small. If an update is unsafe, uncertain, broad, destructive, or speculative, the agent asks, skips it, or records only the safe blocker.
 
 Adapter generation is tracked separately from runtime proof. Codex runtime-probed through `AGENTS.md`. `CLAUDE.md`, `GEMINI.md`, and `AGENT.md` are generated for harnesses that document those startup files. Generated adapters are not the same as runtime proof for every harness.
-
-The next proof:
-
-```text
-same memory
-different agents
-less re-explaining
-```
-
-That is the bar.
